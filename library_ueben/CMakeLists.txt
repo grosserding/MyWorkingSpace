@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(LibraryUeben)
 
-include_directories(include)
+include_directories(include /usr/include/eigen3)
 
 add_library(EigenUebenLib SHARED src/lib/eigen_ueben_lib.cpp)
 

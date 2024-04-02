@@ -4,5 +4,6 @@ int main(int argc, char **argv)
 
 {
   HelloWorld::PrintHelloWorld();
+  EigenLibs::EigenUebungs();
   return 0;
 }
