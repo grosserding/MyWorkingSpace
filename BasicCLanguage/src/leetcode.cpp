@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
               << (vec1_temp.end() == vec1_temp.begin() + 4) << std::endl;
     std::cerr << "vec2_tmp =" << vec2_tmp.size() << std::endl;
   }
-  // *58. 最后一个单词长度
+  // *58. 最后一个单词长度（知识点：字符类型的判断）
   {
     char a = 'a';
     char b = 'B';
@@ -86,6 +86,25 @@ int main(int argc, char **argv) {
     std::cerr << "std::tolower(b) = " << std::tolower(b) << std::endl;
     // 而toupper/tolower，默认也是int类型，但是int可以转成char，仍可以 char A =
     // std::toupper(A);
+  }
+  // *67 二进制求和（知识点：字符串的操作）
+  {
+    std::string a = "Aa";
+    char b = 'b';
+    a = b + a;
+    std::cerr << "a = " << '"' << a << '"' << std::endl;
+    char c = a[2];
+    std::cerr << "c = " << c << std::endl;
+    // 可以用索引访问，但不能用索引赋值。char和string操作时可以当string来用
+    // insert相关：
+    std::string origin_1 = "Ding";
+    std::string insert_1 = "Zhi";
+    origin_1.insert(1, insert_1);
+    std::cerr << "origin_1 = " << origin_1 << std::endl;
+    // origin_1.insert(2, 4, insert_1); 编译错误
+    // origin_1.insert(2, 4, "insert_1"); 编译错误
+    origin_1.insert(2, 4, '1'); // 设定次数的，只能加入字符，不能加入字符串
+    std::cerr << "origin_1 = " << origin_1 << std::endl;
   }
 
   return 0;
