@@ -50,7 +50,7 @@ void EigenUebungs() {
   // 注意，AngleAxis不能直接被打印
   // std::cerr << "aa = " << aa << ", quat = " << quat << ", rot = " << rot_1
   //           << std::endl;
-  std::cerr << "quat = " << quat << std::endl << "rot = " << rot_1 << std::endl;
+  // std::cerr << "quat = " << quat << std::endl << "rot = " << rot_1 << std::endl;
   std::cerr << "Eigen::Vector3d::UnitZ() 的类型是什么:\n"
             << typeid(Eigen::Vector3d::UnitZ()).name()
             << "Eigen::Vector3d::UnitZ() 打印出来是什么:\n"

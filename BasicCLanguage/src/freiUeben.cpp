@@ -2,15 +2,19 @@
 #include <memory>
 #include <string>
 #include <vector>
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // *ptrs
   {
     std::shared_ptr<int> sp_int_1(new int(1));
+    // 这里注意和裸指针的区别：
+    // 裸指针为：int *p = new int(1)
+    // 智能指针为： std::shared_ptr<int> sp(new(1));
     std::cerr << "*sp_int_1 = " << *sp_int_1 << std::endl;
     {
       std::shared_ptr<int> sp_int_2(sp_int_1);
       std::cerr << "sp_int_1.use_count() 1st time = " << sp_int_1.use_count()
                 << std::endl;
+      // 这里sp_int_2就不存在了，因此sp_int_1指向的对象计数减一
     }
     std::cerr << "sp_int_1.use_count() 2nd time = " << sp_int_1.use_count()
               << std::endl;
@@ -23,5 +27,58 @@ int main(int argc, char **argv) {
     std::cerr << "up_int_2 is nullptr: " << !up_int_2 << std::endl;
   }
 
+  // *内存探索
+  {
+    int* p = new int;
+    int t = 1;
+    std::cerr << "p = " << p << ", &t = " << &t << std::endl;
+    p = &t;
+    std::cerr << "p = " << p << ", &t = " << &t << std::endl;
+    *p = 2;
+    std::cerr << "p = " << p << ", &t = " << &t << std::endl;
+    int* q = &t;
+    std::cerr << "p = " << p << ", q = " << q << std::endl;
+    // **关于new
+    {
+      // ***1. 实例化一个对象
+      std::shared_ptr<int> sp_int_1(new int(1));
+      int* p_1 = new int(1);
+      // ***2. 实例化一个数组
+      int length = 10;
+      int* p_2 = new int[length];
+      int* p_3 = new int[length]{1, 2, 3};
+      for (int i = 0; i < length; i++) {
+        std::cerr << "p_3[" << i << "] = " << *(p_3 + i) << std::endl;
+        std::cerr << "p_2[" << i << "] = " << *(p_2 + i) << std::endl;
+        // 能看到，这里new完之后自动初始化为0了，同时注意这里指针遍历的方法
+      }
+      // ****2.1 智能指针怎样指向数组？
+      // std::shared_ptr<int> sp_intgroup_wrong(new int[length]);
+      // 这是不行的，因为释放时只会释放第一个
+      std::shared_ptr<int[]> sp_intgroup(new int[length]);
+      for (int i = 0; i < length; i++) {
+        sp_intgroup[i] = i;  // 这里竟然不需要用取内容符号*
+      }
+      for (int i = 0; i < length; i++) {
+        std::cerr << "sp_intgroup[i] = " << sp_intgroup[i]
+                  << std::endl;  // 这里竟然不需要用取内容符号*
+      }
+      // std::shared_ptr<int> test_sp; test_sp = 1;
+      // 这是不行的，但是智能指针数组却可以！
+      // ***3. 定位new
+      int buffer[100];
+      int* p_buffer;
+      p_buffer = new (buffer) int[20]{
+          1, 2, 3};  // 把p_buffer重定位到原有的变量buffer上面，同时赋值
+      // p_buffer = new (buffer) int[120]{1, 2, 3}; // 栈报错
+      std::cerr << "&buffer = " << &buffer << std::endl;
+      std::cerr << "p_buffer = " << p_buffer << std::endl;
+      int* p_buffer_2;
+      p_buffer_2 = new (buffer) int;
+      std::cerr << "p_buffer_2 = " << p_buffer_2 << std::endl;
+      p_buffer_2 = &(buffer[0]);
+      std::cerr << "p_buffer_2 = " << p_buffer_2 << std::endl;
+    }
+  }
   return 0;
 }
