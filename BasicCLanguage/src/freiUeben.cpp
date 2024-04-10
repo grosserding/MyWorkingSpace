@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // *ptrs
   {
     std::shared_ptr<int> sp_int_1(new int(1));
@@ -29,24 +29,24 @@ int main(int argc, char** argv) {
 
   // *内存探索
   {
-    int* p = new int;
+    int *p = new int;
     int t = 1;
     std::cerr << "p = " << p << ", &t = " << &t << std::endl;
     p = &t;
     std::cerr << "p = " << p << ", &t = " << &t << std::endl;
     *p = 2;
     std::cerr << "p = " << p << ", &t = " << &t << std::endl;
-    int* q = &t;
+    int *q = &t;
     std::cerr << "p = " << p << ", q = " << q << std::endl;
     // **关于new
     {
       // ***1. 实例化一个对象
       std::shared_ptr<int> sp_int_1(new int(1));
-      int* p_1 = new int(1);
+      int *p_1 = new int(1);
       // ***2. 实例化一个数组
       int length = 10;
-      int* p_2 = new int[length];
-      int* p_3 = new int[length]{1, 2, 3};
+      int *p_2 = new int[length];
+      int *p_3 = new int[length]{1, 2, 3};
       for (int i = 0; i < length; i++) {
         std::cerr << "p_3[" << i << "] = " << *(p_3 + i) << std::endl;
         std::cerr << "p_2[" << i << "] = " << *(p_2 + i) << std::endl;
@@ -57,28 +57,53 @@ int main(int argc, char** argv) {
       // 这是不行的，因为释放时只会释放第一个
       std::shared_ptr<int[]> sp_intgroup(new int[length]);
       for (int i = 0; i < length; i++) {
-        sp_intgroup[i] = i;  // 这里竟然不需要用取内容符号*
+        sp_intgroup[i] = i; // 这里竟然不需要用取内容符号*
       }
       for (int i = 0; i < length; i++) {
         std::cerr << "sp_intgroup[i] = " << sp_intgroup[i]
-                  << std::endl;  // 这里竟然不需要用取内容符号*
+                  << std::endl; // 这里竟然不需要用取内容符号*
       }
       // std::shared_ptr<int> test_sp; test_sp = 1;
       // 这是不行的，但是智能指针数组却可以！
       // ***3. 定位new
       int buffer[100];
-      int* p_buffer;
+      int *p_buffer;
       p_buffer = new (buffer) int[20]{
-          1, 2, 3};  // 把p_buffer重定位到原有的变量buffer上面，同时赋值
+          1, 2, 3}; // 把p_buffer重定位到原有的变量buffer上面，同时赋值
       // p_buffer = new (buffer) int[120]{1, 2, 3}; // 栈报错
       std::cerr << "&buffer = " << &buffer << std::endl;
       std::cerr << "p_buffer = " << p_buffer << std::endl;
-      int* p_buffer_2;
+      int *p_buffer_2;
       p_buffer_2 = new (buffer) int;
       std::cerr << "p_buffer_2 = " << p_buffer_2 << std::endl;
       p_buffer_2 = &(buffer[0]);
       std::cerr << "p_buffer_2 = " << p_buffer_2 << std::endl;
     }
+  }
+
+  // *vector相关
+  {
+    std::vector<int> vec1{1, 2, 3, 4, 5};
+    std::cerr << "vec1.capacity() = " << vec1.capacity() << std::endl;
+    vec1 = std::vector<int>(vec1.begin(),
+                            vec1.begin() +
+                                2); // 这里直接复制了，连capacity也直接变为2
+    std::cerr << "vec1.capacity() = " << vec1.capacity() << std::endl;
+    vec1 = {1, 2, 3, 4, 5}; // 别忘了std::vector还能这样赋值
+    std::cerr << "vec1.capacity() = " << vec1.capacity() << std::endl;
+    std::cerr << "vec1 = ";
+    for (auto tmp : vec1) {
+      std::cerr << tmp << ", ";
+    }
+    vec1.erase(vec1.begin()); // 删除，后一个顶上。
+    std::cerr << std::endl
+              << "After erase vec1.begin(), vec1.capacity() = "
+              << vec1.capacity() << std::endl;
+    std::cerr << "vec1 = ";
+    for (auto tmp : vec1) {
+      std::cerr << tmp << ", ";
+    }
+    std::cerr << std::endl;
   }
   return 0;
 }

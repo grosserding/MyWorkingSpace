@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 int main(int argc, char **argv) {
   // *105. 前序中序构造二叉树
@@ -106,6 +107,86 @@ int main(int argc, char **argv) {
     origin_1.insert(2, 4, '1'); // 设定次数的，只能加入字符，不能加入字符串
     std::cerr << "origin_1 = " << origin_1 << std::endl;
   }
+  // *146 LRU缓存
+  {
+    class Node {
+    public:
+      Node *prev, *next;
+      int key, value;
+      Node(int key, int value) : key(key), value(value) {}
+      Node() {}
+    };
 
+    class LRUCache {
+    private:
+      Node *dummy;
+      int capacity;
+      int size;
+      std::unordered_map<int, Node *> key_to_node;
+
+      void remove(Node *x) {
+        x->prev->next = x->next;
+        x->next->prev = x->prev; // 注意！这里双向链表，所以要两次链接！！！
+        size--;
+        key_to_node.erase(x->key);
+      }
+
+      void add(Node *x) {
+        x->next = dummy->next;
+        x->next->prev = x;
+        dummy->next = x; // 这里也是两次链接！
+        x->prev = dummy; // 这里也是两次链接！
+        size++;
+        key_to_node[x->key] = x;
+      }
+
+      Node *getNode(int key) {
+        auto it = key_to_node.find(key);
+        if (it == key_to_node.end())
+          return nullptr;
+        auto node = it->second;
+        return node;
+      }
+
+    public:
+      LRUCache(int capacity) : capacity(capacity), dummy(new Node()) {
+        dummy->prev = dummy;
+        dummy->next = dummy;
+      }
+
+      int get(int key) {
+        auto node = getNode(key);
+        if (!node) {
+          return node->value;
+        } else {
+          return -1;
+        }
+      }
+
+      void put(int key, int value) {
+        auto node_new = new Node(key, value);
+        auto node_get = getNode(key);
+        if (!node_get) {
+          add(node_new);
+          if (size > capacity) {
+            remove(dummy->prev);
+          }
+        } else {
+          remove(node_get);
+          add(node_new);
+        }
+      }
+    };
+
+    LRUCache cache = LRUCache(2);
+    cache.put(1, 1);
+    cache.put(2, 2);
+    cache.put(3, 3);
+    cache.put(2, 4);
+    std::cerr << "cache.get(1) = " << cache.get(1) << std::endl;
+    std::cerr << "cache.get(2) = " << cache.get(2) << std::endl;
+    std::cerr << "cache.get(3) = " << cache.get(3) << std::endl;
+    std::cerr << "cache.get(4) = " << cache.get(4) << std::endl;
+  }
   return 0;
 }
