@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  // *vector相关
+  // *vector相关、底层原理
   {
     std::vector<int> vec1{1, 2, 3, 4, 5};
     std::cerr << "vec1.capacity() = " << vec1.capacity() << std::endl;
@@ -104,6 +104,43 @@ int main(int argc, char **argv) {
       std::cerr << tmp << ", ";
     }
     std::cerr << std::endl;
+
+    std::vector<int> vec(3);
+    // 这步已经完成初始化了其实，每个数都是0
+    std::cerr << "--------------" << std::endl;
+    for (auto num : vec) {
+      std::cerr << num << std::endl;
+    }
+    std::cerr << "--------------" << std::endl;
+    std::cerr << "vec[0] = " << vec[0] << std::endl;
+    std::cerr << "vec.size() = " << vec.size() << std::endl;
+    std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
+    std::cerr << "vec.max_size() = " << vec.max_size() << std::endl;
+    std::cerr << "&vec(1) = " << &(vec[0]) << std::endl;
+    vec.emplace_back(1);
+    vec.emplace_back(2);
+    // 注意：这里压入的数，是直接扩容并赋值，而并非改变原来的第一个数和第二个数
+    std::cerr << "--------------" << std::endl;
+    for (auto num : vec) {
+      std::cerr << num << std::endl;
+    }
+    std::cerr << "--------------" << std::endl;
+    std::cerr << "vec[0] = " << vec[0] << std::endl;
+    std::cerr << "vec.size() = " << vec.size() << std::endl;
+    std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
+    std::cerr << "vec.max_size() = " << vec.max_size() << std::endl;
+    std::cerr << "&vec(1) = " << &(vec[0]) << std::endl;
+
+    std::cerr << "--------------" << std::endl;
+    std::cerr << "vec.size() = " << vec.size() << std::endl;
+    std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
+    vec.reserve(100); // 增加到100而非+100
+    std::cerr << "vec.size() = " << vec.size() << std::endl;
+    std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
+
+    vec.reserve(10); // 小于原capacity，则不会改变！
+    std::cerr << "vec.size() = " << vec.size() << std::endl;
+    std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
   }
   return 0;
 }
