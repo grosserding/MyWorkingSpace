@@ -4,7 +4,29 @@
 #include <vector>
 #include <list>
 #include <unordered_map>
+int global = 0;
+static int static_global = 1;
+
+// {
+// } 如果不在一个函数内，不能使用作用域
+
+namespace test_space {
+class TestClassInTestSpace {
+ public:
+  // TestClassInTestSpace():global_a(0) {} 这样也编不过，不能这样赋值
+  TestClassInTestSpace(int a) : a(a) {}
+  int a = 0;
+  static int global_a;
+};
+}  // namespace test_space
+
 int main(int argc, char **argv) {
+  // *tools and test in need
+  class TestStaticInMain {
+    // static int a; // 还是不行，因为在main中
+  };
+
+  static int static_global_in_main = 2;
   // *ptrs
   std::cerr << "**********ptrs**********" << std::endl;
   {
@@ -182,6 +204,37 @@ int main(int argc, char **argv) {
     }
     // 别忘了unordered_map中find的用法，是unordered_map::iterator it =
     // hash.find(key);
+  }
+  // *static相关
+  std::cerr << "**********static相关**********" << std::endl;
+  {
+    {
+      static int static_global_in_scope =
+          3;  // 被限制在本作用域内，其他地方不能访问
+    }
+    {
+      std::cerr << "global = " << global << std::endl;
+      std::cerr << "static_global = " << static_global << std::endl;
+      std::cerr << "static_global_in_main = " << static_global_in_main
+                << std::endl;
+      // std::cerr << "static_global_in_scope = " << static_global_in_scope <<
+      // std::endl;  // 编译不通过
+      class TestStatic {
+       public:
+        TestStatic(int a) : a(a) {}
+        int a = 0;
+        // static int global_a; 编译不通过
+       private:
+        // static int global_a; 仍然编不过！因为local
+        // class不能包含静态数据成员，但可以包含静态函数成员
+      };
+      test_space::TestClassInTestSpace ts1(1);
+      test_space::TestClassInTestSpace ts2(2);
+      ts1.global_a = 100000;
+      test_space::TestClassInTestSpace ts3(3);
+      std::cerr << "ts2.global_a = " << ts2.global_a << std::endl;
+      std::cerr << "ts3.global_a = " << ts3.global_a << std::endl;
+    }
   }
   return 0;
 }
