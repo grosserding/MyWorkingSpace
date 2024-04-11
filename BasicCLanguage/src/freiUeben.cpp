@@ -1,24 +1,28 @@
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
-#include <list>
-#include <unordered_map>
+#include "freiUeben.h"
 int global = 0;
 static int static_global = 1;
 
 // {
 // } 如果不在一个函数内，不能使用作用域
 
-namespace test_space {
-class TestClassInTestSpace {
- public:
-  // TestClassInTestSpace():global_a(0) {} 这样也编不过，不能这样赋值
-  TestClassInTestSpace(int a) : a(a) {}
-  int a = 0;
+namespace test_space_2 {
+class TestClass2 {
+public:
+  static void SetGlobalB1(int b) { global_b = b; }
+  static void SetGlobalB2() { global_b = 0; }
   static int global_a;
+
+private:
+  static int global_b;
 };
-}  // namespace test_space
+
+} // namespace test_space_2
+
+int test_space_2::TestClass2::global_b = 211;
+// test_space_2::TestClass2::SetGlobalB1(311);
+// test_space_2::TestClass2::SetGlobalB2();
+int test_space_2::TestClass2::global_a = 11;
+int test_space::TestClassInTestSpace::global_a = 10;
 
 int main(int argc, char **argv) {
   // *tools and test in need
@@ -177,10 +181,10 @@ int main(int argc, char **argv) {
     std::vector<int> vec{1, 2, 3, 4, 5, 6, 7, 8};
     std::vector<int>::iterator it = vec.begin() + 4;
     std::cerr << "*it = " << *it << std::endl;
-    std::cerr << "*(it+2) = " << *(it+2) << std::endl;
-    std::cerr << "*(it-2) = " << *(it-2) << std::endl;
+    std::cerr << "*(it+2) = " << *(it + 2) << std::endl;
+    std::cerr << "*(it-2) = " << *(it - 2) << std::endl;
     std::cerr << "*(--it) = " << *(--it) << std::endl;
-    std::cerr << "it > it-1 = " << (it > it-1) << std::endl;
+    std::cerr << "it > it-1 = " << (it > it - 1) << std::endl;
     // it list
     std::list<int> list_test{1, 2, 3, 4, 5, 6, 7, 8};
     std::list<int>::iterator it2 = list_test.begin();
@@ -210,7 +214,7 @@ int main(int argc, char **argv) {
   {
     {
       static int static_global_in_scope =
-          3;  // 被限制在本作用域内，其他地方不能访问
+          3; // 被限制在本作用域内，其他地方不能访问
     }
     {
       std::cerr << "global = " << global << std::endl;
@@ -220,11 +224,11 @@ int main(int argc, char **argv) {
       // std::cerr << "static_global_in_scope = " << static_global_in_scope <<
       // std::endl;  // 编译不通过
       class TestStatic {
-       public:
+      public:
         TestStatic(int a) : a(a) {}
         int a = 0;
         // static int global_a; 编译不通过
-       private:
+      private:
         // static int global_a; 仍然编不过！因为local
         // class不能包含静态数据成员，但可以包含静态函数成员
       };
@@ -234,6 +238,12 @@ int main(int argc, char **argv) {
       test_space::TestClassInTestSpace ts3(3);
       std::cerr << "ts2.global_a = " << ts2.global_a << std::endl;
       std::cerr << "ts3.global_a = " << ts3.global_a << std::endl;
+
+      test_space_2::TestClass2 test1;
+      test1.global_a = 21;
+      test_space_2::TestClass2 test2;
+      test2.global_a = 31;
+      std::cerr << "test1.global_a = " << test1.global_a << std::endl;
     }
   }
   return 0;
