@@ -2,8 +2,11 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <list>
+#include <unordered_map>
 int main(int argc, char **argv) {
   // *ptrs
+  std::cerr << "**********ptrs**********" << std::endl;
   {
     std::shared_ptr<int> sp_int_1(new int(1));
     // 这里注意和裸指针的区别：
@@ -28,6 +31,7 @@ int main(int argc, char **argv) {
   }
 
   // *内存探索
+  std::cerr << "**********内存探索**********" << std::endl;
   {
     int *p = new int;
     int t = 1;
@@ -82,6 +86,7 @@ int main(int argc, char **argv) {
   }
 
   // *vector相关、底层原理
+  std::cerr << "**********vector相关、底层原理**********" << std::endl;
   {
     std::vector<int> vec1{1, 2, 3, 4, 5};
     std::cerr << "vec1.capacity() = " << vec1.capacity() << std::endl;
@@ -141,6 +146,42 @@ int main(int argc, char **argv) {
     vec.reserve(10); // 小于原capacity，则不会改变！
     std::cerr << "vec.size() = " << vec.size() << std::endl;
     std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
+  }
+
+  // *vector和list的迭代器对比
+  std::cerr << "**********vector和list的迭代器对比**********" << std::endl;
+  {
+    // it vector
+    std::vector<int> vec{1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<int>::iterator it = vec.begin() + 4;
+    std::cerr << "*it = " << *it << std::endl;
+    std::cerr << "*(it+2) = " << *(it+2) << std::endl;
+    std::cerr << "*(it-2) = " << *(it-2) << std::endl;
+    std::cerr << "*(--it) = " << *(--it) << std::endl;
+    std::cerr << "it > it-1 = " << (it > it-1) << std::endl;
+    // it list
+    std::list<int> list_test{1, 2, 3, 4, 5, 6, 7, 8};
+    std::list<int>::iterator it2 = list_test.begin();
+    // it2 += 2; 编译不通过
+    it2++;
+    std::cerr << "*it2 = " << *it2 << std::endl;
+    it2--;
+    std::cerr << "*it2 = " << *it2 << std::endl;
+  }
+  // *unordered_map相关
+  std::cerr << "**********unordered_map相关**********" << std::endl;
+  {
+    std::unordered_map<int, int> hash{{1, 11}, {2, 12}, {3, 13}};
+    auto tryfind = hash.find(1);
+    std::cerr << "tpye of tryfind = " << typeid(tryfind).name() << std::endl;
+    if (tryfind == hash.end()) {
+      std::cerr << "tryfind == hash.end()" << std::endl;
+    } else {
+      std::cerr << "tryfind->first = " << tryfind->first << std::endl;
+      std::cerr << "tryfind->second = " << tryfind->second << std::endl;
+    }
+    // 别忘了unordered_map中find的用法，是unordered_map::iterator it =
+    // hash.find(key);
   }
   return 0;
 }
