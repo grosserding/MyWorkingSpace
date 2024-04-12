@@ -11,17 +11,18 @@ public:
   static void SetGlobalB1(int b) { global_b = b; }
   static void SetGlobalB2() { global_b = 0; }
   static int global_a;
+  static int global_b;
 
 private:
-  static int global_b;
+  static int global_c;
 };
 
 } // namespace test_space_2
 
 int test_space_2::TestClass2::global_b = 211;
-// test_space_2::TestClass2::SetGlobalB1(311);
-// test_space_2::TestClass2::SetGlobalB2();
 int test_space_2::TestClass2::global_a = 11;
+int test_space_2::TestClass2::global_c =
+    31;  // *注意：这里不属于调用、访问，而是属于定义！因此和private访问权限无关！且因为是定义而不是简单的赋值，前面要加数据类型名int，这里很反直觉！
 int test_space::TestClassInTestSpace::global_a = 10;
 
 int main(int argc, char **argv) {
@@ -243,7 +244,14 @@ int main(int argc, char **argv) {
       test1.global_a = 21;
       test_space_2::TestClass2 test2;
       test2.global_a = 31;
+      // std::cerr << "test1.global_c = " << test1.global_c
+      //     << std::endl;
+      //     这里才是访问，因为global_c是private，因此不能编译通过
       std::cerr << "test1.global_a = " << test1.global_a << std::endl;
+      test_space_2::TestClass2::SetGlobalB1(311);
+      std::cerr << "test1.global_b = " << test1.global_b << std::endl;
+      test_space_2::TestClass2::SetGlobalB2();
+      std::cerr << "test2.global_b = " << test2.global_b << std::endl;
     }
   }
   return 0;
