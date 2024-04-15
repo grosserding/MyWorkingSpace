@@ -7,6 +7,29 @@ void PrintHelloWorld() {
 }
 } // namespace HelloWorld
 
+template <typename S>
+Eigen::Matrix<S, 3, 1> ToRollPitchYaw(const Eigen::Quaternion<S>& rotation) {
+  const S& w = rotation.w();
+  const S& x = rotation.x();
+  const S& y = rotation.y();
+  const S& z = rotation.z();
+
+  S sinr_cosp = +2.0 * (w * x + y * z);
+  S cosr_cosp = +1.0 - 2.0 * (x * x + y * y);
+  S roll = atan2(sinr_cosp, cosr_cosp);
+  // pitch (y-axis rotation)
+  S sinp = +2.0 * (w * y - z * x);
+  S pitch;
+  if (fabs(sinp) >= 1)
+    pitch = copysign(M_PI / 2, sinp);  // use 90 degrees if out of range
+  else
+    pitch = asin(sinp);
+  // yaw (z-axis rotation)
+  S siny_cosp = +2.0 * (w * z + x * y);
+  S cosy_cosp = +1.0 - 2.0 * (y * y + z * z);
+  S yaw = atan2(siny_cosp, cosy_cosp);
+  return Eigen::Matrix<S, 3, 1>(roll, pitch, yaw);
+}
 namespace EigenLibs {
 void EigenUebungs() {
   //****** Basics ******//
@@ -75,5 +98,22 @@ void EigenUebungs() {
   std::cerr << "x = A.householderQr().solve(b) =\n" << x_qr << std::endl;
   // 3.7 坐标转换
   auto pose1 = Sophus::SE3d();
+
+  // temp
+  Eigen::Matrix<double, 9, 3> mask = Eigen::Matrix<double, 9, 3>::Zero();
+  // mask(0, 6) = 1;
+  mask(7, 1) = 1;
+  std::cerr << "mask = " << mask << std::endl;
+  Eigen::Matrix3d rot_mat;
+  rot_mat <<   0.99953  ,0.0145026 ,-0.0270589  ,
+ 0.0272467 ,-0.0129099 ,  0.999546   ,
+ 0.0141467,  -0.999811 ,-0.0132991     ;
+  Eigen::Vector3d R_ZYX = rot_mat.eulerAngles(2, 1, 0);
+  std::cout << "yaw, pitch, roll " << R_ZYX.transpose() * 180 / M_PI
+            << std::endl;
+
+  Eigen::Quaterniond quat_2(rot_mat);
+  auto rpy_2 = ToRollPitchYaw(quat_2);
+  std::cout << "roll, pitch, yaw " << rpy_2.transpose() * 180 / M_PI << std::endl;
 }
 } // namespace EigenLibs
