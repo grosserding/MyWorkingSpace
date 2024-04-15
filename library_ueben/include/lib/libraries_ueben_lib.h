@@ -1,5 +1,7 @@
 #pragma once
-#include <math.h>
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
+#include <cmath>
 
 #include "sophus/se3.hpp"
 #include "sophus/so3.hpp"
@@ -17,6 +19,6 @@ namespace MyMath {} // namespace MyMath
 namespace HelloWorld {
 void PrintHelloWorld();
 }
-namespace EigenLibs {
-void EigenUebungs();
+namespace LibrariesUeben {
+void LibrarysUebenFunc();
 }
