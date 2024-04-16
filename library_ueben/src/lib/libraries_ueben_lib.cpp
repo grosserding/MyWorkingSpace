@@ -180,7 +180,7 @@ void LibrarysUebenFunc() {
     std::cerr << "#3. EulerAngle" << std::endl;
     {
       std::cerr << "##3.1 EulerAngle Initiation" << std::endl;
-      Eigen::Vector3d ea(M_PI/4, M_PI/4, M_PI/4);
+      Eigen::Vector3d ea(M_PI / 4, M_PI / 4, M_PI / 4);
       std::cerr << "##3.2 EulerAngle to AngleAxis" << std::endl;
       Eigen::AngleAxisd aa_x(ea(0), Eigen::Vector3d::UnitX());
       Eigen::AngleAxisd aa_y(ea(1), Eigen::Vector3d::UnitY());
@@ -198,9 +198,9 @@ void LibrarysUebenFunc() {
       // 注意：欧拉角三个轴的先后顺序对最后产生的结果有影响。
     }
     std::cerr << "#4. quaternion" << std::endl;
-    { 
+    {
       std::cerr << "##4.1 quaternion Initiation" << std::endl;
-      Eigen::Quaterniond quat_1(1,0.5,0.5,0.5);
+      Eigen::Quaterniond quat_1(1, 0.5, 0.5, 0.5);
       std::cerr << "##4.2 quaternion to RotationMatrix" << std::endl;
       Eigen::Matrix3d rm_1 = quat_1.matrix();
       Eigen::Matrix3d rm_2 = quat_1.toRotationMatrix();
@@ -219,7 +219,7 @@ void LibrarysUebenFunc() {
       Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d::UnitZ());
       Eigen::Matrix3d R(aa_1);
       Eigen::Quaterniond quat(aa_1);
-      Sophus::SO3d SO3_R(quat);  // SO3_R(R), SO3_R(aa_1)都可以
+      Sophus::SO3d SO3_R(quat); // SO3_R(R), SO3_R(aa_1)都可以
       std::cerr << "SO3_R = \n" << SO3_R.matrix() << std::endl;
       auto so3 = SO3_R.log();
       std::cerr << "so3 = SO3_R.log() type is " << typeid(so3).name()
@@ -237,19 +237,20 @@ void LibrarysUebenFunc() {
     {
       std::cerr << "#2. 扰动量更新" << std::endl;
       Eigen::AngleAxisd aa_origin(M_PI / 2, Eigen::Vector3d::UnitZ());
-      Sophus::SO3d SO3_origin(Eigen::Quaterniond(aa_origin));
+      Eigen::Quaterniond quat(aa_origin);
+      Sophus::SO3d SO3_origin(quat);
       Eigen::Vector3d update_so3(0, 0, M_PI / 4);
       Sophus::SO3d update_SO3 = Sophus::SO3d::exp(update_so3);
       std::cerr << "type update_SO3 = " << typeid(update_SO3).name()
                 << std::endl;
-      // Sophus::SO3d SO3_R_after_update = update_SO3 * SO3_origin;
-      // std::cerr << "R before update = \n" << SO3_origin.matrix() << std::endl;
-      // std::cerr << "R after update = \n"
-      //           << SO3_R_after_update.matrix() << std::endl;
-      // std::cerr << "R.log() before update = " << SO3_origin.log().transpose()
-      //           << std::endl;
-      // std::cerr << "R.log() after update = "
-      //           << SO3_R_after_update.log().transpose() << std::endl;
+      Sophus::SO3d SO3_R_after_update = update_SO3 * SO3_origin;
+      std::cerr << "R before update = \n" << SO3_origin.matrix() << std::endl;
+      std::cerr << "R after update = \n"
+                << SO3_R_after_update.matrix() << std::endl;
+      std::cerr << "R.log() before update = " << SO3_origin.log().transpose()
+                << std::endl;
+      std::cerr << "R.log() after update = "
+                << SO3_R_after_update.log().transpose() << std::endl;
     }
   }
 }

@@ -22,7 +22,7 @@ private:
 int test_space_2::TestClass2::global_b = 211;
 int test_space_2::TestClass2::global_a = 11;
 int test_space_2::TestClass2::global_c =
-    31;  // *注意：这里不属于调用、访问，而是属于定义！因此和private访问权限无关！且因为是定义而不是简单的赋值，前面要加数据类型名int，这里很反直觉！
+    31; // *注意：这里不属于调用、访问，而是属于定义！因此和private访问权限无关！且因为是定义而不是简单的赋值，前面要加数据类型名int，这里很反直觉！
 int test_space::TestClassInTestSpace::global_a = 10;
 
 int main(int argc, char **argv) {
