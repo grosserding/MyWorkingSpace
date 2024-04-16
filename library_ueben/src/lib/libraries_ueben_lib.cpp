@@ -64,9 +64,9 @@ void LibrarysUebenFunc() {
     // 因此，AngleAxis相乘得到的数据类型为Quaternion
   }
 
-  //****** SLAM十四讲习题第三章 ******//
+  //****** 14chaps chap3 ******//
   {
-    std::cerr << "****** SLAM十四讲习题第三章 ******" << std::endl;
+    std::cerr << "****** 14chaps chap3 ******" << std::endl;
     // 3.4 旋转矩阵/轴角/欧拉角/四元数之间的转化关系
     Eigen::Matrix3d rot_1;
     Eigen::AngleAxisd aa;
@@ -187,7 +187,7 @@ void LibrarysUebenFunc() {
       Eigen::AngleAxisd aa_z(ea(2), Eigen::Vector3d::UnitZ());
       auto aa_1 = aa_x * aa_y * aa_z;
       auto aa_4 = aa_z * aa_y * aa_x;
-      std::cerr << "aa_1.tpye = " << typeid(aa_1).name() << std::endl;
+      std::cerr << "aa_1.type = " << typeid(aa_1).name() << std::endl;
       std::cerr << "aa_1.mat = " << aa_1.coeffs().transpose() << std::endl
                 << "aa_4.mat = " << aa_4.coeffs().transpose() << std::endl;
       Eigen::Matrix3d rot_origin = Eigen::Matrix3d::Identity();
@@ -206,16 +206,51 @@ void LibrarysUebenFunc() {
       Eigen::Matrix3d rm_2 = quat_1.toRotationMatrix();
       std::cerr << "rm_1 = \n" << rm_1 << std::endl;
       std::cerr << "rm_2 = \n" << rm_2 << std::endl;
-
     }
   }
+
   //****** 14chaps 4.4 ******//
   {
     std::cerr << "****** 14chaps4.4 ******" << std::endl;
-    Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d::UnitZ());
-    Eigen::Matrix3d R(aa_1);
-    Eigen::Quaterniond quat(aa_1);
-    Sophus::SO3d SO3_R(quat);
+    {
+      // 李代数、向量到反对称矩阵、反对称矩阵到向量
+      std::cerr << "#1. 李代数、向量到反对称矩阵、反对称矩阵到向量"
+                << std::endl;
+      Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d::UnitZ());
+      Eigen::Matrix3d R(aa_1);
+      Eigen::Quaterniond quat(aa_1);
+      Sophus::SO3d SO3_R(quat);  // SO3_R(R), SO3_R(aa_1)都可以
+      std::cerr << "SO3_R = \n" << SO3_R.matrix() << std::endl;
+      auto so3 = SO3_R.log();
+      std::cerr << "so3 = SO3_R.log() type is " << typeid(so3).name()
+                << ", which is acutally vector3d" << std::endl;
+      auto so3Hat = Sophus::SO3d::hat(so3);
+      std::cerr << "so3 = " << so3.transpose() << std::endl;
+      std::cerr << "so3.hat = \n" << so3Hat << std::endl;
+      std::cerr << "so3.hat.vee = " << Sophus::SO3d::vee(so3Hat).transpose()
+                << std::endl;
+      std::cerr << "exp(so3) = \n"
+                << Sophus::SO3d::exp(so3).matrix() << std::endl;
+    }
+
+    // 扰动量更新
+    {
+      std::cerr << "#2. 扰动量更新" << std::endl;
+      Eigen::AngleAxisd aa_origin(M_PI / 2, Eigen::Vector3d::UnitZ());
+      Sophus::SO3d SO3_origin(Eigen::Quaterniond(aa_origin));
+      Eigen::Vector3d update_so3(0, 0, M_PI / 4);
+      Sophus::SO3d update_SO3 = Sophus::SO3d::exp(update_so3);
+      std::cerr << "type update_SO3 = " << typeid(update_SO3).name()
+                << std::endl;
+      // Sophus::SO3d SO3_R_after_update = update_SO3 * SO3_origin;
+      // std::cerr << "R before update = \n" << SO3_origin.matrix() << std::endl;
+      // std::cerr << "R after update = \n"
+      //           << SO3_R_after_update.matrix() << std::endl;
+      // std::cerr << "R.log() before update = " << SO3_origin.log().transpose()
+      //           << std::endl;
+      // std::cerr << "R.log() after update = "
+      //           << SO3_R_after_update.log().transpose() << std::endl;
+    }
   }
 }
 } // namespace LibrariesUeben
