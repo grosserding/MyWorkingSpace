@@ -123,13 +123,99 @@ void LibrarysUebenFunc() {
     std::cout << "roll, pitch, yaw " << rpy_2.transpose() * 180 / M_PI
               << std::endl;
   }
-  //****** SLAM十四讲4.4 ******//
+  //****** SO3 R euler AngleAxis ******//
   {
-    std::cerr << "****** SLAM十四讲4.4 ******" << std::endl;
-    Eigen::Matrix3d tf_mat =
-        Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d(0, 0, 1))
-            .toRotationMatrix();
-    Sophus::SO3d a_SO3d(tf_mat);
+    std::cerr << "****** SO3 R euler AngleAxis ******" << std::endl;
+    std::cerr
+        << "#1. AngleAxis, 要再次明确，旋转向量为一个方向的向量，与欧拉角不同"
+        << std::endl;
+    {
+      std::cerr << "##1.1 AngleAxis Initiation" << std::endl;
+      Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d(0, 0, 1));
+      Eigen::AngleAxisd aa_2(M_PI / 2, Eigen::Vector3d::UnitZ());
+      // std::cerr << "aa_1 = " << aa_1 << std::endl;
+      // std::cerr << "aa_2 = " << aa_2 << std::endl;
+      std::cerr << "##1.2 AngleAxis to RotationMatrix" << std::endl;
+      Eigen::Matrix3d rm_1 = aa_1.matrix();
+      Eigen::Matrix3d rm_2 = aa_2.toRotationMatrix();
+      // 这两个都可以！
+      std::cerr << "rm_1 = \n" << rm_1 << std::endl;
+      std::cerr << "rm_2 = \n" << rm_2 << std::endl;
+      std::cerr << "##1.3 AngleAxis to EulerAngle(没有直接方法)" << std::endl;
+      Eigen::Vector3d ea_1 = aa_1.matrix().eulerAngles(0, 1, 2);
+      Eigen::Vector3d ea_2 = aa_2.matrix().eulerAngles(0, 1, 2);
+      std::cerr << "ea_1 = \n" << ea_1.transpose() << std::endl;
+      std::cerr << "ea_2 = \n" << ea_2.transpose() << std::endl;
+      std::cerr << "##1.4 AngleAxis to Quaternion" << std::endl;
+      Eigen::Quaterniond quat_1(aa_1);
+      Eigen::Quaterniond quat_2(aa_2);
+      std::cerr << "quat_1 = \n"
+                << quat_1.x() << "," << quat_1.y() << "," << quat_1.z() << ","
+                << quat_1.w() << std::endl;
+      // 注意这里打印四元数的方式，不能直接流输出，而是要调用coeffs()函数来返回Matrix
+      std::cerr << "quat_2 = \n" << quat_2.coeffs().transpose() << std::endl;
+      std::cerr
+          << "#Summary: .matrix()=.toRotationMatrix(), fromRotationMatrix()"
+          << std::endl;
+    }
+
+    std::cerr << "#2. RotationMatrix" << std::endl;
+    {
+      std::cerr << "##2.1 RotationMatrix Initiation" << std::endl;
+      Eigen::Matrix3d rm_1 =
+          Eigen::AngleAxisd(M_PI / 4, Eigen::Vector3d::UnitZ()).matrix();
+      std::cerr << "rm_1 = \n" << rm_1 << std::endl;
+      std::cerr << "##2.2 RotationMatrix to AngleAxis" << std::endl;
+      Eigen::AngleAxisd aa_1(rm_1);
+      Eigen::AngleAxisd aa_2;
+      aa_2.fromRotationMatrix(rm_1);
+      std::cerr << "##2.3 RotationMatrix to EulerAngles" << std::endl;
+      Eigen::Vector3d ea = rm_1.eulerAngles(0, 1, 2);
+      std::cerr << "rm_1.eulerAngles(0, 1, 2) = " << ea.transpose() / M_PI * 180
+                << "(deg)" << std::endl;
+      std::cerr << "##2.4 RotationMatrix to Quaterniond" << std::endl;
+      std::cerr << "quat_1 = " << Eigen::Quaterniond(rm_1).coeffs()
+                << std::endl;
+    }
+    std::cerr << "#3. EulerAngle" << std::endl;
+    {
+      std::cerr << "##3.1 EulerAngle Initiation" << std::endl;
+      Eigen::Vector3d ea(M_PI/4, M_PI/4, M_PI/4);
+      std::cerr << "##3.2 EulerAngle to AngleAxis" << std::endl;
+      Eigen::AngleAxisd aa_x(ea(0), Eigen::Vector3d::UnitX());
+      Eigen::AngleAxisd aa_y(ea(1), Eigen::Vector3d::UnitY());
+      Eigen::AngleAxisd aa_z(ea(2), Eigen::Vector3d::UnitZ());
+      auto aa_1 = aa_x * aa_y * aa_z;
+      auto aa_4 = aa_z * aa_y * aa_x;
+      std::cerr << "aa_1.tpye = " << typeid(aa_1).name() << std::endl;
+      std::cerr << "aa_1.mat = " << aa_1.coeffs().transpose() << std::endl
+                << "aa_4.mat = " << aa_4.coeffs().transpose() << std::endl;
+      Eigen::Matrix3d rot_origin = Eigen::Matrix3d::Identity();
+      auto rot_1 = aa_1 * rot_origin;
+      auto rot_2 = aa_4 * rot_origin;
+      std::cerr << "after aa_1 = " << rot_1 << std::endl;
+      std::cerr << "after aa_4 = " << rot_2 << std::endl;
+      // 注意：欧拉角三个轴的先后顺序对最后产生的结果有影响。
+    }
+    std::cerr << "#4. quaternion" << std::endl;
+    { 
+      std::cerr << "##4.1 quaternion Initiation" << std::endl;
+      Eigen::Quaterniond quat_1(1,0.5,0.5,0.5);
+      std::cerr << "##4.2 quaternion to RotationMatrix" << std::endl;
+      Eigen::Matrix3d rm_1 = quat_1.matrix();
+      Eigen::Matrix3d rm_2 = quat_1.toRotationMatrix();
+      std::cerr << "rm_1 = \n" << rm_1 << std::endl;
+      std::cerr << "rm_2 = \n" << rm_2 << std::endl;
+
+    }
+  }
+  //****** 14chaps 4.4 ******//
+  {
+    std::cerr << "****** 14chaps4.4 ******" << std::endl;
+    Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d::UnitZ());
+    Eigen::Matrix3d R(aa_1);
+    Eigen::Quaterniond quat(aa_1);
+    Sophus::SO3d SO3_R(quat);
   }
 }
 } // namespace LibrariesUeben
