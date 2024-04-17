@@ -213,10 +213,10 @@ void LibrarysUebenFunc() {
   {
     std::cerr << "****** 14chaps4.4 ******" << std::endl;
     {
-      // 李代数、向量到反对称矩阵、反对称矩阵到向量
+      //#1. 李代数、向量到反对称矩阵、反对称矩阵到向量
       std::cerr << "#1. 李代数、向量到反对称矩阵、反对称矩阵到向量"
                 << std::endl;
-      Eigen::AngleAxisd aa_1(M_PI / 2, Eigen::Vector3d::UnitZ());
+      Eigen::AngleAxisd aa_1(M_PI / 4, Eigen::Vector3d::UnitZ());
       Eigen::Matrix3d R(aa_1);
       Eigen::Quaterniond quat(aa_1);
       Sophus::SO3d SO3_R(quat); // SO3_R(R), SO3_R(aa_1)都可以
@@ -231,11 +231,75 @@ void LibrarysUebenFunc() {
                 << std::endl;
       std::cerr << "exp(so3) = \n"
                 << Sophus::SO3d::exp(so3).matrix() << std::endl;
+
+      //#2. SE3相关
+      std::cerr << "#2. SE3相关" << std::endl;
+      Eigen::Vector3d t(25, 35, 2);
+      Sophus::SE3d SE3_1(R, t);
+      std::cerr << "SE3_1.matrix() = \n" << SE3_1.matrix() << std::endl;
+      auto se3_1 = SE3_1.log();
+      std::cerr << "se3_1.type = " << typeid(se3_1).name() << std::endl;
+      std::cerr << "se3_1 = " << se3_1.transpose() << std::endl;
+      auto SE3_2 = Sophus::SE3d::exp(se3_1);
+      std::cerr << "SE3_2.type = " << typeid(SE3_2).name() << std::endl;
+      std::cerr << "SE3_2.matrix() = \n" << SE3_2.matrix() << std::endl;
+
+      Eigen::Vector3d t_updating(3.5, 0, 0);
+      Eigen::Matrix3d R_updating = Eigen::Matrix3d::Identity();
+      Eigen::Matrix<double, 6, 1> updating2 =
+          Eigen::Matrix<double, 6, 1>::Zero();
+      updating2(0, 0) = 3.5;
+      auto SE3_updating_1 = Sophus::SE3d(R_updating, t_updating);
+      auto SE3_updating_2 = Sophus::SE3d::exp(updating2);
+      std::cerr << "SE3_updating_1 = \n"
+                << SE3_updating_1.matrix() << std::endl;
+      std::cerr << "SE3_updating_2 = \n"
+                << SE3_updating_2.matrix() << std::endl;
+      auto SE3_updated_1 = SE3_updating_1 * SE3_1;
+      auto SE3_updated_2 = SE3_updating_2 * SE3_1;
+      std::cerr << "SE3_updated_1.matrix() = \n"
+                << SE3_updated_1.matrix() << std::endl;
+      std::cerr << "SE3_updated_2.matrix() = \n"
+                << SE3_updated_2.matrix() << std::endl;
+      
+      // 这里回顾AddOdomPose
+      // motion_loc = R.inverse() * motion_odom * R;
+      Eigen::Matrix3d odom_R = Eigen::Matrix3d::Identity();
+      Eigen::Vector3d odom_t_1(1, 0, 0);
+      Eigen::Vector3d odom_t_2(1.5, 0, 0);
+      Sophus::SE3d SE3_odom_1(odom_R, odom_t_1);
+      Sophus::SE3d SE3_odom_2(odom_R, odom_t_2);
+      Sophus::SE3d motion = SE3_odom_1.inverse() * SE3_odom_2;
+
+      Eigen::AngleAxisd loc_aa(M_PI / 4, Eigen::Vector3d::UnitZ());
+      Eigen::Matrix3d loc_R = loc_aa.matrix();
+      Eigen::Vector3d loc_t(13, 13, 2);
+      Sophus::SE3d tf(loc_R, Eigen::Vector3d::Zero());
+      Sophus::SE3d loc_1(loc_R, loc_t);
+      auto motion_loc = tf * motion * tf.inverse();
+      auto loc_2 = motion_loc * loc_1;
+      std::cerr << "loc_1.mat = \n" << loc_1.matrix() << std::endl;
+      std::cerr << "loc_2.mat = \n" << loc_2.matrix() << std::endl;
+
+      // 计算pose的差
+      Eigen::Vector3d pose1_t(1, 0, 0);
+      Eigen::Vector3d pose2_t(1, 0, 1);
+      Eigen::AngleAxisd pose1_aa(M_PI / 4, Eigen::Vector3d::UnitZ());
+      auto pose1_R = pose1_aa.matrix();
+      Eigen::Matrix3d pose2_R = Eigen::Matrix3d::Identity();
+      Sophus::SE3d pose_1(pose1_R, pose1_t);
+      Sophus::SE3d pose_2(pose2_R, pose2_t);
+      auto motion_pose = pose_1.inverse() * pose_2;
+      std::cerr << "motion_pose.mat = \n" << motion_pose.matrix() << std::endl;
+      std::cerr << "motion_pose.log = " << motion_pose.log() << std::endl;
+      std::cerr << "motion_pose.log.norm = " << motion_pose.log().norm()
+                << std::endl;
+      // 这样直接计算整个se3的norm感觉还是不太合理，都不是一个量纲的
     }
 
-    // 扰动量更新
+    //#3. 扰动量更新
     {
-      std::cerr << "#2. 扰动量更新" << std::endl;
+      std::cerr << "#3. 扰动量更新" << std::endl;
       Eigen::AngleAxisd aa_origin(M_PI / 2, Eigen::Vector3d::UnitZ());
       Eigen::Quaterniond quat(aa_origin);
       Sophus::SO3d SO3_origin(quat);
@@ -252,6 +316,9 @@ void LibrarysUebenFunc() {
       std::cerr << "R.log() after update = "
                 << SO3_R_after_update.log().transpose() << std::endl;
     }
+
+    //#4. 结合eskf的SO3预测和更新
+    { std::cerr << "#4. 结合eskf的SO3预测和更新" << std::endl; }
   }
 }
-} // namespace LibrariesUeben
+}  // namespace LibrariesUeben
