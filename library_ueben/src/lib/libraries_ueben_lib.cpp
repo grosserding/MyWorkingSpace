@@ -318,7 +318,41 @@ void LibrarysUebenFunc() {
     }
 
     //#4. 结合eskf的SO3预测和更新
-    { std::cerr << "#4. 结合eskf的SO3预测和更新" << std::endl; }
+    {
+      std::cerr << "#4. 结合eskf的SO3预测和更新" << std::endl;
+      //##4.1. 预测部分： e.g. IMU读数是a、g，时间为dt
+      Eigen::Vector3d a(0.1, 0.1, 0.1);
+      Eigen::Vector3d g(0.01, 0.01, 0.01);
+      double dt = 0.01;
+      Sophus::SO3d R_old =
+          Sophus::SO3d::exp(Eigen::Vector3d(0.01, 0.015, M_PI / 4));
+      Sophus::SO3d predict = Sophus::SO3d::exp(g * dt);
+      // Sophus::SO3d R_new_2 = predict * R_old;
+      Sophus::SO3d R_new_1 = R_old * predict;
+      // std::cerr << "R_new_2.log = " << R_new_2.log().transpose() << std::endl;
+      std::cerr << "R_new_1.log = " << R_new_1.log().transpose() << std::endl;
+      // 注意，左扰动和右扰动不同，但数量级很小时结果相近。之后可以一直用右扰动。
+      //##4.2. 更新部分：e.g. GPS给出的SO3为 SO3_gps
+      Sophus::SO3d R_gps =
+          Sophus::SO3d::exp(Eigen::Vector3d(0.02, 0.02, M_PI / 4 + 0.02));
+      Eigen::Vector3d ErrorVec = (R_new_1.inverse() * R_gps).log();
+      std::cerr << "ErrorVec = " << ErrorVec << std::endl;
+      double k = 0.9;
+      Eigen::Vector3d UpdateVec = ErrorVec * k;
+
+      // 所以，实际存在状态量中的选装量为R，旋转矩阵/SO3。计算error时用SO3的乘法后转换为so3，计算更新量时用K*so3，更新时再转回SO3用乘法更新
+    }
+
+    //#5. 结合eskf的Quaternion预测和更新，暂时不看了
+    { std::cerr << "#4. 结合eskf的Quaternion预测和更新" << std::endl; }
+  }
+
+  //****** 14chaps chap3 ******//
+  {
+    std::cerr << "****** 14chaps chap3 ******" << std::endl;
+    { 
+      std::cerr << std::endl; 
+    }
   }
 }
 }  // namespace LibrariesUeben
