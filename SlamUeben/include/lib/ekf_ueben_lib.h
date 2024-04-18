@@ -1,15 +1,16 @@
 #pragma once
+#include "datatype/datatype.h"
+#include "sensors/imu.h"
 #include <cmath>
 #include <iostream>
 #include <typeinfo>
-#include "datatype/datatype.h"
-#include "sensors/imu.h"
 
 namespace EKFUeben {
 class Filter {
- public:
-    void RunFilter();
- private:
+public:
+  void RunFilter();
+
+private:
 };
 
 // template <typename S> 这里可以为了提高通用性设置模板类
@@ -28,10 +29,10 @@ struct NavState {
 };
 
 class ESKF {
- public:
+public:
   bool Predict(const sensors::IMU imu);
 
- private:
+private:
   // 名义状态，可以看到名义状态是分开定义的，比如旋转定义为SO3
   Vec3 p_ = Vec3::Zero();
   Vec3 v_ = Vec3::Zero();
@@ -45,4 +46,4 @@ class ESKF {
   // 协方差阵
   Mat18 cov_ = Mat18::Identity();
 };
-}  // namespace EKFUeben
+} // namespace EKFUeben

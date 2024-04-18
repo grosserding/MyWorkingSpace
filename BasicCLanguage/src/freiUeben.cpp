@@ -25,6 +25,7 @@ int test_space_2::TestClass2::global_c =
     31; // *注意：这里不属于调用、访问，而是属于定义！因此和private访问权限无关！且因为是定义而不是简单的赋值，前面要加数据类型名int，这里很反直觉！
 int test_space::TestClassInTestSpace::global_a = 10;
 
+void buildTree(std::vector<int> &vec1) { return; }
 int main(int argc, char **argv) {
   // *tools and test in need
   class TestStaticInMain {
@@ -55,6 +56,16 @@ int main(int argc, char **argv) {
     up_int_1.reset(up_int_2.release());
     std::cerr << "*up_int_1 = " << *up_int_1 << std::endl;
     std::cerr << "up_int_2 is nullptr: " << !up_int_2 << std::endl;
+
+    // 双向迭代器
+    std::vector<int> ls_1{1, 2, 3, 4, 5};
+    std::vector<int>::iterator it_1 = ls_1.begin();
+    std::vector<int>::iterator it_2 = ls_1.begin();
+    std::cerr << "++it_1 = " << *(++it_2) << std::endl;
+    *(it_1) = *(++it_1);
+    *(it_1) = 2;
+    std::cerr << "ls_1 after = " << ls_1[0] << "," << ls_1[1] << "..."
+              << std::endl;
   }
 
   // *内存探索
@@ -175,7 +186,7 @@ int main(int argc, char **argv) {
     std::cerr << "vec.capacity() = " << vec.capacity() << std::endl;
   }
 
-  // *vector和list的迭代器对比
+  // *vector和list对比
   std::cerr << "**********vector和list的迭代器对比**********" << std::endl;
   {
     // it vector
@@ -194,6 +205,9 @@ int main(int argc, char **argv) {
     std::cerr << "*it2 = " << *it2 << std::endl;
     it2--;
     std::cerr << "*it2 = " << *it2 << std::endl;
+
+    std::list<int> ls1{1, 2, 3};
+    // 注意，pop_back(), pop_front()都返回void。auto a = ls1.pop_back();编译不过
   }
   // *unordered_map相关
   std::cerr << "**********unordered_map相关**********" << std::endl;
@@ -253,6 +267,13 @@ int main(int argc, char **argv) {
       test_space_2::TestClass2::SetGlobalB2();
       std::cerr << "test2.global_b = " << test2.global_b << std::endl;
     }
+  }
+  // *函数相关
+  std::cerr << "**********函数相关**********" << std::endl;
+  {
+    std::vector<int> vec2{1, 2, 3};
+    buildTree(vec2);
+    // buildTree(std::vector<int>(vec2)); 这样就不行。参数为&
   }
   return 0;
 }

@@ -261,7 +261,7 @@ void LibrarysUebenFunc() {
                 << SE3_updated_1.matrix() << std::endl;
       std::cerr << "SE3_updated_2.matrix() = \n"
                 << SE3_updated_2.matrix() << std::endl;
-      
+
       // 这里回顾AddOdomPose
       // motion_loc = R.inverse() * motion_odom * R;
       Eigen::Matrix3d odom_R = Eigen::Matrix3d::Identity();
@@ -329,7 +329,8 @@ void LibrarysUebenFunc() {
       Sophus::SO3d predict = Sophus::SO3d::exp(g * dt);
       // Sophus::SO3d R_new_2 = predict * R_old;
       Sophus::SO3d R_new_1 = R_old * predict;
-      // std::cerr << "R_new_2.log = " << R_new_2.log().transpose() << std::endl;
+      // std::cerr << "R_new_2.log = " << R_new_2.log().transpose() <<
+      // std::endl;
       std::cerr << "R_new_1.log = " << R_new_1.log().transpose() << std::endl;
       // 注意，左扰动和右扰动不同，但数量级很小时结果相近。之后可以一直用右扰动。
       //##4.2. 更新部分：e.g. GPS给出的SO3为 SO3_gps
@@ -350,9 +351,7 @@ void LibrarysUebenFunc() {
   //****** 14chaps chap3 ******//
   {
     std::cerr << "****** 14chaps chap3 ******" << std::endl;
-    { 
-      std::cerr << std::endl; 
-    }
+    { std::cerr << std::endl; }
   }
 }
-}  // namespace LibrariesUeben
+} // namespace LibrariesUeben

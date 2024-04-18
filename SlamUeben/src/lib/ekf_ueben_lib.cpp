@@ -2,4 +2,4 @@
 
 namespace EKFUeben {
 void Filter::RunFilter() {}
-}  // namespace EKFUeben
+} // namespace EKFUeben
