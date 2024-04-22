@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 
 namespace test_space {
 class TestClassInTestSpace {

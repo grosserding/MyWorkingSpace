@@ -275,5 +275,12 @@ int main(int argc, char **argv) {
     buildTree(vec2);
     // buildTree(std::vector<int>(vec2)); 这样就不行。参数为&
   }
+  // *数学相关
+  std::cerr << "**********数学相关**********" << std::endl;
+  {
+    double a = 4.0;
+    auto b = sqrt(a);
+    std::cerr << "b.type = " << typeid(b).name() << ", b = " << b << std::endl;
+  }
   return 0;
 }
