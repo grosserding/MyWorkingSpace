@@ -15,4 +15,24 @@ public:
   int a = 0;
   static int global_a;
 };
+class Animal {
+public:
+  Animal();
+  virtual void Cry()=0;
+  void TestFunc();
+
+private:
+  std::string classname;
+  std::string objectname;
+  std::string cryline;
+
+  std::string teststring;
+};
+
+class Tiger : public Animal {
+ public:
+  Tiger(std::string objectname)
+      : objectname(objectname), classname("tiger"), cryline("aww") {}
+  virtual void Cry() override { std::cerr << cryline << std::endl; }
+};
 } // namespace test_space
