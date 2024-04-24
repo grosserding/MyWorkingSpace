@@ -5,6 +5,7 @@ static int static_global = 1;
 // {
 // } 如果不在一个函数内，不能使用作用域
 
+int Add_explicit(int a, int b) { return a + b; }
 namespace test_space_2 {
 class TestClass2 {
 public:
@@ -281,6 +282,156 @@ int main(int argc, char **argv) {
     double a = 4.0;
     auto b = sqrt(a);
     std::cerr << "b.type = " << typeid(b).name() << ", b = " << b << std::endl;
+  }
+  // *类、继承、多态
+  std::cerr << "**********类、继承、多态**********" << std::endl;
+  {
+    Tiger xiaohu("huhu");
+    xiaohu.Cry();
+    Tiger *xiaohuzhizhen = new Tiger("huhuzhizhen");
+    Animal *xiaohuzhizhen2 = new Tiger("huhuzhizhne2");
+    xiaohuzhizhen2->TestFunc1();
+    xiaohuzhizhen2->TestFunc2();
+    xiaohuzhizhen2->TestFunc3();
+    std::cerr << "-------------------------" << std::endl;
+    DeleteAnimal(xiaohuzhizhen);
+    std::cerr << "-------------------------" << std::endl;
+    delete xiaohuzhizhen2;
+    std::cerr << "-------------------------" << std::endl;
+    std::cerr << "注意，如果基类的析构函数不定义为虚函数，则上面两个指针对象删"
+                 "除时都只会调用基类的析构函数，而不会调用派生类的析构函数"
+              << std::endl;
+  }
+  // *lambda
+  std::cerr << "**********lambda**********" << std::endl;
+  {
+    std::function<int(int,int)> Add1 = [](int a, int b) -> int { return a + b; };
+    auto Add2 = [](int a, int b) -> int { return a + b; };
+    std::cerr << "Add(1, 2) = " << Add1(1, 2) << std::endl;
+    std::cerr << "Add_explicit(1, 2) = " << Add_explicit(1, 2) << std::endl;
+    std::cerr << "Add1.type = " << typeid(Add1).name() << std::endl;
+    std::cerr << "Add2.type = " << typeid(Add2).name() << std::endl;
+  }
+  // *左右值和引用
+  std::cerr << "**********左右值和引用**********" << std::endl;
+  {
+    // 左值定义
+    int a = 3;
+    int* pa = &a;
+    int* pb = new int(5);
+    std::cerr << "*pa = " << *pa << std::endl;
+    std::cerr << "*pb = " << *pb << std::endl;
+
+    // 左值引用
+    int &ar = a;
+    const int &car = a;
+    int*& par = pa;
+    std::cerr << "*par = " << *par << std::endl;
+    a = 10;
+    std::cerr << "ar = " << ar << std::endl;
+    std::cerr << "car = " << car << std::endl;
+    std::cerr << "*par = " << *par << std::endl;
+    ar = 20;
+    // car = 30; // 编译不通过，因为定义为const类型
+    std::cerr << "car.type = " << typeid(car).name() << std::endl;
+    std::cerr << "a = " << a << std::endl;
+    std::cerr << "&a = " << &a << std::endl;
+    std::cerr << "&ar = " << &ar << std::endl;
+    std::cerr << "&car = " << &car << std::endl;
+
+    // 右值引用
+    int && rra = 10;
+    const int && rrb = 20;
+    std::cerr << "&rra = " << &rra << std::endl;
+    std::cerr << "&rrb = " << &rrb << std::endl;
+
+    // std::move
+    int moved_a = 12;
+    std::cerr << "&moved_a = " << &moved_a << std::endl;
+    std::cerr << "moved_a = " << moved_a << std::endl;
+    int &&rr_moved_a = std::move(moved_a);
+    std::cerr << "&moved_a = " << &moved_a << std::endl;
+    std::cerr << "moved_a = " << moved_a << std::endl;
+    int another_moved_a = std::move(moved_a);
+    std::cerr << "&moved_a = " << &moved_a << std::endl;
+    std::cerr << "moved_a = " << moved_a << std::endl;
+    std::string str_moved = "aaaaaa";
+    std::cerr << "std_moved = " << str_moved << std::endl;
+    std::cerr << "&std_moved = " << &str_moved << std::endl;
+    std::string new_str = std::move(str_moved);
+    std::cerr << "std_moved = " << str_moved << std::endl;
+    std::cerr << "&std_moved = " << &str_moved << std::endl;
+    str_moved = "bbbbbb";
+    std::cerr << "std_moved = " << str_moved << std::endl;
+    std::cerr << "&std_moved = " << &str_moved << std::endl;
+    std::string && str_another = std::move(str_moved);
+    std::cerr << "std_moved = " << str_moved << std::endl;
+    std::cerr << "&std_moved = " << &str_moved << std::endl;
+
+    int moved_num = 23;
+    std::vector<int> vec;
+    std::cerr << "moved_num = " << moved_num << std::endl;
+    vec.push_back(std::move(moved_num));
+    std::cerr << "moved_num = " << moved_num << std::endl;
+    std::cerr << "&moved_num = " << &moved_num << std::endl;
+    std::cerr << "&(vec[1]) = " << &(vec[1]) << std::endl;
+  }
+  // *右值引用、移动语义等
+  std::cerr << "**********右值引用、移动语义等**********" << std::endl;
+  {
+    class MyClass {
+      public:
+       MyClass() : p(new int(0)) {
+         std::cerr << "Default constructor" << std::endl;
+       }
+       MyClass(const MyClass &other) : p(new int(*(other.p))) {
+         std::cerr << "Copy constructor" << std::endl;
+       }
+       MyClass(MyClass &&other) : p(new int(*(other.p))) {
+         std::cerr << "Move constructor" << std::endl;
+       }
+       MyClass& operator=(const MyClass& other) {
+          std::cerr << "Copy" << std::endl;
+          this->p = new int(*(other.p));
+       };
+       MyClass& operator=(MyClass&& other) {
+          std::cerr << "Copy" << std::endl;
+          this->p = new int(*(other.p));
+       };
+      int* p;
+    };
+    MyClass mc1;
+    MyClass mc2(mc1);
+    MyClass mc3(std::move(mc1));
+    std::cerr << "mc1.p = " << mc1.p << std::endl;
+    std::cerr << "mc2.p = " << mc2.p << std::endl;
+    std::cerr << "mc3.p = " << mc3.p << std::endl;
+
+    class MyClassDefault {
+     public:
+      MyClassDefault() : p(new int(0)) {
+        std::cerr << "Default constructor" << std::endl;
+      }
+      MyClassDefault(const MyClassDefault &other) : p(new int(*(other.p))) {
+        std::cerr << "Copy constructor" << std::endl;
+      }
+      MyClassDefault(MyClassDefault &&other) : p(new int(*(other.p))) {
+        std::cerr << "Move constructor" << std::endl;
+      }
+      ~MyClassDefault() {
+        std::cerr << "Destructor" << std::endl;
+      }
+      int *p;
+    };
+    MyClassDefault mc1_d;
+    MyClassDefault mc2_d(mc1_d);
+    MyClassDefault mc3_d(std::move(mc1_d));
+    std::cerr << "mc1_d.p = " << mc1_d.p << std::endl;
+    std::cerr << "mc2_d.p = " << mc2_d.p << std::endl;
+    std::cerr << "mc3_d.p = " << mc3_d.p << std::endl;
+
+    MyClassDefault* test_new_and_delete = new MyClassDefault();
+    delete test_new_and_delete;
   }
   return 0;
 }
