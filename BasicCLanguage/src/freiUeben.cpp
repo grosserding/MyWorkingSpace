@@ -34,6 +34,18 @@ int main(int argc, char **argv) {
   };
 
   static int static_global_in_main = 2;
+  // *string
+  std::cerr << "**********string**********" << std::endl;
+  {
+    char a = 'a';
+    // std::string aa = a + a; //这样会报错
+    std::string aa = "" + std::to_string(a) + std::to_string(a); // 这样也不对
+    std::cerr << "aa = " << aa << std::endl;
+    std::string aa_right = std::string(1, a) + std::string(1, a);
+    std::cerr << "aa_right = " << aa_right << std::endl; // 这样就对了
+    std::string aa_right_another = std::string(2, a);
+    std::cerr << "aa_right = " << aa_right_another << std::endl; // 这样也可以
+  }
   // *ptrs
   std::cerr << "**********ptrs**********" << std::endl;
   {
@@ -221,7 +233,7 @@ int main(int argc, char **argv) {
     // auto a = q1.pop(); // pop不返回值！编译错误
     q1.pop();
     // auto q1_it = q1.begin(); // queue 没有迭代器！
-    
+
     // deque
 
     // priority_queue
@@ -321,7 +333,9 @@ int main(int argc, char **argv) {
   // *lambda
   std::cerr << "**********lambda**********" << std::endl;
   {
-    std::function<int(int,int)> Add1 = [](int a, int b) -> int { return a + b; };
+    std::function<int(int, int)> Add1 = [](int a, int b) -> int {
+      return a + b;
+    };
     auto Add2 = [](int a, int b) -> int { return a + b; };
     std::cerr << "Add(1, 2) = " << Add1(1, 2) << std::endl;
     std::cerr << "Add_explicit(1, 2) = " << Add_explicit(1, 2) << std::endl;
@@ -333,15 +347,15 @@ int main(int argc, char **argv) {
   {
     // 左值定义
     int a = 3;
-    int* pa = &a;
-    int* pb = new int(5);
+    int *pa = &a;
+    int *pb = new int(5);
     std::cerr << "*pa = " << *pa << std::endl;
     std::cerr << "*pb = " << *pb << std::endl;
 
     // 左值引用
     int &ar = a;
     const int &car = a;
-    int*& par = pa;
+    int *&par = pa;
     std::cerr << "*par = " << *par << std::endl;
     a = 10;
     std::cerr << "ar = " << ar << std::endl;
@@ -356,8 +370,8 @@ int main(int argc, char **argv) {
     std::cerr << "&car = " << &car << std::endl;
 
     // 右值引用
-    int && rra = 10;
-    const int && rrb = 20;
+    int &&rra = 10;
+    const int &&rrb = 20;
     std::cerr << "&rra = " << &rra << std::endl;
     std::cerr << "&rrb = " << &rrb << std::endl;
 
@@ -380,7 +394,7 @@ int main(int argc, char **argv) {
     str_moved = "bbbbbb";
     std::cerr << "std_moved = " << str_moved << std::endl;
     std::cerr << "&std_moved = " << &str_moved << std::endl;
-    std::string && str_another = std::move(str_moved);
+    std::string &&str_another = std::move(str_moved);
     std::cerr << "std_moved = " << str_moved << std::endl;
     std::cerr << "&std_moved = " << &str_moved << std::endl;
 
@@ -396,25 +410,25 @@ int main(int argc, char **argv) {
   std::cerr << "**********右值引用、移动语义等**********" << std::endl;
   {
     class MyClass {
-      public:
-       MyClass() : p(new int(0)) {
-         std::cerr << "Default constructor" << std::endl;
-       }
-       MyClass(const MyClass &other) : p(new int(*(other.p))) {
-         std::cerr << "Copy constructor" << std::endl;
-       }
-       MyClass(MyClass &&other) : p(new int(*(other.p))) {
-         std::cerr << "Move constructor" << std::endl;
-       }
-       MyClass& operator=(const MyClass& other) {
-          std::cerr << "Copy" << std::endl;
-          this->p = new int(*(other.p));
-       };
-       MyClass& operator=(MyClass&& other) {
-          std::cerr << "Copy" << std::endl;
-          this->p = new int(*(other.p));
-       };
-      int* p;
+    public:
+      MyClass() : p(new int(0)) {
+        std::cerr << "Default constructor" << std::endl;
+      }
+      MyClass(const MyClass &other) : p(new int(*(other.p))) {
+        std::cerr << "Copy constructor" << std::endl;
+      }
+      MyClass(MyClass &&other) : p(new int(*(other.p))) {
+        std::cerr << "Move constructor" << std::endl;
+      }
+      MyClass &operator=(const MyClass &other) {
+        std::cerr << "Copy" << std::endl;
+        this->p = new int(*(other.p));
+      }
+      MyClass &operator=(MyClass &&other) {
+        std::cerr << "Copy" << std::endl;
+        this->p = new int(*(other.p));
+      }
+      int *p;
     };
     MyClass mc1;
     MyClass mc2(mc1);
@@ -424,7 +438,7 @@ int main(int argc, char **argv) {
     std::cerr << "mc3.p = " << mc3.p << std::endl;
 
     class MyClassDefault {
-     public:
+    public:
       MyClassDefault() : p(new int(0)) {
         std::cerr << "Default constructor" << std::endl;
       }
@@ -434,9 +448,7 @@ int main(int argc, char **argv) {
       MyClassDefault(MyClassDefault &&other) : p(new int(*(other.p))) {
         std::cerr << "Move constructor" << std::endl;
       }
-      ~MyClassDefault() {
-        std::cerr << "Destructor" << std::endl;
-      }
+      ~MyClassDefault() { std::cerr << "Destructor" << std::endl; }
       int *p;
     };
     MyClassDefault mc1_d;
@@ -446,7 +458,7 @@ int main(int argc, char **argv) {
     std::cerr << "mc2_d.p = " << mc2_d.p << std::endl;
     std::cerr << "mc3_d.p = " << mc3_d.p << std::endl;
 
-    MyClassDefault* test_new_and_delete = new MyClassDefault();
+    MyClassDefault *test_new_and_delete = new MyClassDefault();
     delete test_new_and_delete;
   }
   return 0;
