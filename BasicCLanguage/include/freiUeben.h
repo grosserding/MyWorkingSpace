@@ -7,6 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <functional>
+#include <queue>
 
 namespace test_space {
 class TestClassInTestSpace {

@@ -210,6 +210,22 @@ int main(int argc, char **argv) {
     std::list<int> ls1{1, 2, 3};
     // 注意，pop_back(), pop_front()都返回void。auto a = ls1.pop_back();编译不过
   }
+  // *queue相关
+  std::cerr << "**********queue相关**********" << std::endl;
+  {
+    // queue
+    std::queue<int> q1;
+    q1.push(0);
+    q1.push(1);
+    q1.push(2);
+    // auto a = q1.pop(); // pop不返回值！编译错误
+    q1.pop();
+    // auto q1_it = q1.begin(); // queue 没有迭代器！
+    
+    // deque
+
+    // priority_queue
+  }
   // *unordered_map相关
   std::cerr << "**********unordered_map相关**********" << std::endl;
   {
