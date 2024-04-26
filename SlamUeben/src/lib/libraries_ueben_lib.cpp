@@ -46,6 +46,9 @@ void LibrarysUebenFunc() {
     auto vec2 = vec1.cast<float>();
     std::cerr << "type of vec2 is: " << typeid(vec2(0)).name()
               << ", value is: " << vec2(0) << std::endl;
+    std::cerr << "Eigen::Matrix3d() using finished = "
+              << (Eigen::Matrix3d() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished()
+              << std::endl;
   }
   //****** Rotation Matrix - Quaternion - EulerAngle ******//
   {
