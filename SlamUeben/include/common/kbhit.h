@@ -1,24 +1,10 @@
 #pragma once
-#include <typeinfo>
-#ifndef FMT_HEADER_ONLY
-#define FMT_HEADER_ONLY
-#endif
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-
-#include "fmt/format.h"
-#include "sophus/se3.hpp"
-#include "sophus/so3.hpp"
-#include <iostream>
-
-/* 添加按键控制循环结束功能 */
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
-
+/* 添加按键控制循环结束功能 */
 int kbhit(void) {
   struct termios oldt, newt;
   int ch;

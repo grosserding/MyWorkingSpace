@@ -1,4 +1,6 @@
-#include "common/common.h"
+#include "common/common_include.h"
+#include "common/kbhit.h"
+#include "common/singleton.hpp"
 
 #define VEL_L 5.0
 #define VEL_A 10.0
