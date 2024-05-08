@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include "common/singleton.hpp"
+#include "common/common_include.h"
 
 class CsvIOHelper {
   DECLARE_SINGLETON(CsvIOHelper)
@@ -26,13 +26,7 @@ class CsvIOHelper {
 
  public:
   ~CsvIOHelper();
-  /**
-   * @brief function registering file where the data write in
-   *
-   * @param file_path
-   * @param header
-   * @return slot index
-   */
+
   bool RegisterFileWithHeader(const std::string& dir, const std::string& name,
                               const std::vector<std::string>& header) {
     auto time =
@@ -64,23 +58,6 @@ class CsvIOHelper {
       std::cerr << "[CsvIOHelper] fail to get lock, init fail" << std::endl;
       return false;
     }
-  }
-
-  /**
-   * @brief whole bunch of overload formatting functions
-   *
-   * @param data different kind of data structure and their formatting rules
-   * @return std::string
-   */
-  std::string format(const estimator::FullState& data) {
-    Eigen::Matrix<double, 3, 1> rpy = transform::ToRollPitchYaw(data.rotation);
-    return std::to_string(data.position.x()) + "," +
-           std::to_string(data.position.y()) + "," +
-           std::to_string(data.position.z()) + "," + std::to_string(rpy.x()) +
-           "," + std::to_string(rpy.y()) + "," + std::to_string(rpy.z()) + "," +
-           std::to_string(data.velocity.x()) + "," +
-           std::to_string(data.velocity.y()) + "," +
-           std::to_string(data.velocity.z());
   }
 
   std::string format(const std::string& data) { return data; }
@@ -117,38 +94,18 @@ class CsvIOHelper {
            std::to_string(rpy.z());
   }
 
-  /**
-   * @brief recursion termintor
-   * recursive parsing parameter pack
-   * @tparam T data type
-   * @param os output string
-   * @return std::string&
-   */
   template <typename T>
   std::string& generate_line(std::string& os, const T& t) {
     os += format(t) + "\n";
     return os;
   }
 
-  /**
-   * @brief recursion body
-   * recursive parsing parameter pack
-   * @param os output string
-   * @param t current parsing param
-   * @param rest rest of the pack
-   * @return std::string&
-   */
   template <typename T, typename... Args>
   std::string& generate_line(std::string& os, const T& t, const Args&... rest) {
     os += format(t) + ",";
     return generate_line(os, rest...);
   }
 
-  /**
-   * @brief write a line to the out_stream[index], takes a parameter pack
-   * @param index slot to write in
-   * @param content parameter pack
-   */
   template <typename... Args>
   void write_line(const std::string& name, const Args&... content) {
     if ((out_streams_.end() != out_streams_.find(name))) {
@@ -180,10 +137,6 @@ class CsvIOHelper {
     }
   }
 
-  /**
-   * @brief only for unit test, don't use this function
-   * file close and save operations are automatically handled in destructor
-   */
   void save() {
     for (auto& file : out_streams_) {
       file.second.flush();
