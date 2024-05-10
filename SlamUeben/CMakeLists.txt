@@ -13,7 +13,7 @@ add_library(EKFUebenLib SHARED src/lib/ekf_ueben_lib.cpp)
 
 add_executable(ExecuteSlamUeben src/slam_ueben_main.cpp)
 
-add_executable(ExecuteKapitelZwei src/slam_in_autonomous/kapitel_zwei.cpp)
+add_executable(ExecuteKapitel_2_3 src/slam_in_autonomous/kapitel_2_3.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
-target_link_libraries(ExecuteKapitelZwei common_lib)
+target_link_libraries(ExecuteKapitel_2_3 common_lib)
