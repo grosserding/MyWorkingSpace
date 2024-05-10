@@ -2,7 +2,7 @@
 #include "common/kbhit.h"
 #include "common/singleton.hpp"
 
-#define VEL_L 5.0
+#define VEL_L 20.0
 #define VEL_A 10.0
 #define USE_QUAT false
 #define COUNT_MAX 60 * 60 * 20
@@ -15,7 +15,9 @@ int main(int argc, char** argv) {
   auto& csv_util = CsvIOHelper::GetInstance();
   std::vector<std::string> header{"stamp", "x",     "y",  "z",
                                   "roll",  "pitch", "yaw"};
-  std::string csv_name = "kapitel_zwei_circle_movements";
+  std::string csv_name =
+      (boost::format("circlemovements_v_%.2f_w_%.2f") % VEL_L % VEL_A)
+          .str();  // 注意：这里的字符串格式化使用了boost::format，很方便
   csv_util.RegisterFileWithHeader(cwd, csv_name, header);
   std::cerr << "Kapitel zwei" << std::endl;
   Sophus::SE3d pose(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
@@ -44,7 +46,7 @@ int main(int argc, char** argv) {
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now().time_since_epoch())
             .count() /
-        1e9;  // 注意这里标准的当前的timestamp生成的方式
+        1e9;  // 注意：这里标准的当前的timestamp生成的方式
     std::cerr << "stamp = " << std::to_string(stamp_now)
               << ", translation = " << pose.translation().transpose()
               << ", rpy = " << pose.so3().log().transpose() * 180 / M_PI

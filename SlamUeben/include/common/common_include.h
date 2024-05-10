@@ -8,6 +8,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+#include <boost/format.hpp>
 #include <iostream>
 
 #include "common/csv_utils.hpp"
