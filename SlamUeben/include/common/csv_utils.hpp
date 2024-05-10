@@ -14,7 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include "common/common_include.h"
+#include "common/transform.h"
+#include "common/singleton.hpp"
 
 class CsvIOHelper {
   DECLARE_SINGLETON(CsvIOHelper)

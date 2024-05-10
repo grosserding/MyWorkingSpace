@@ -8,6 +8,15 @@
 #define COUNT_MAX 60 * 60 * 20
 
 int main(int argc, char** argv) {
+  std::string cwd;
+  cwd = getcwd(NULL, 0);
+  cwd += "/../data/";
+  std::cerr << "cwd = " << cwd << std::endl;
+  auto& csv_util = CsvIOHelper::GetInstance();
+  std::vector<std::string> header{"stamp", "x",     "y",  "z",
+                                  "roll",  "pitch", "yaw"};
+  std::string csv_name = "kapitel_zwei_circle_movements";
+  csv_util.RegisterFileWithHeader(cwd, csv_name, header);
   std::cerr << "Kapitel zwei" << std::endl;
   Sophus::SE3d pose(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
   Eigen::Vector3d v_angle(0, 0, VEL_A / 180 * M_PI);
@@ -31,17 +40,22 @@ int main(int argc, char** argv) {
     auto v_world = pose.so3() * v_linear;
     pose.translation() += v_world * dt;
     pose.so3() = pose.so3() * Sophus::SO3d::exp(v_angle * dt);
-    std::cerr << "translation = " << pose.translation().transpose()
+    double stamp_now =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch())
+            .count() /
+        1e9;  // 注意这里标准的当前的timestamp生成的方式
+    std::cerr << "stamp = " << std::to_string(stamp_now)
+              << ", translation = " << pose.translation().transpose()
               << ", rpy = " << pose.so3().log().transpose() * 180 / M_PI
               << std::endl;
 
+    csv_util.write_line(csv_name, stamp_now, pose);
     // loop control
-    auto start = std::chrono::high_resolution_clock::now();
     if (kbhit()) {
       ch = getchar();
     }
     count++;
-    auto finish = std::chrono::high_resolution_clock::now();
     // std::cerr << "now in loop, dt = "
     //           << std::chrono::duration_cast<std::chrono::nanoseconds>(finish -
     //                                                                    start)
