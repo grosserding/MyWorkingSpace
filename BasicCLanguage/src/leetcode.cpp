@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -183,10 +184,30 @@ int main(int argc, char **argv) {
     cache.put(2, 2);
     cache.put(3, 3);
     cache.put(2, 4);
-    std::cerr << "cache.get(1) = " << cache.get(1) << std::endl;
-    std::cerr << "cache.get(2) = " << cache.get(2) << std::endl;
-    std::cerr << "cache.get(3) = " << cache.get(3) << std::endl;
-    std::cerr << "cache.get(4) = " << cache.get(4) << std::endl;
+    // std::cerr << "cache.get(1) = " << cache.get(1) << std::endl;
+    // std::cerr << "cache.get(2) = " << cache.get(2) << std::endl;
+    // std::cerr << "cache.get(3) = " << cache.get(3) << std::endl;
+    // std::cerr << "cache.get(4) = " << cache.get(4) << std::endl;
+  }
+  // *88 合并两个有序数组
+  {
+    std::vector<int> vec1{0, 1, 3, 23, 3, 6, 9, 2};
+    sort(vec1.begin(), vec1.end());
+    std::cerr << "vec1 sort default:";
+    for (auto val : vec1) {
+      std::cerr << " " << val;
+    }
+    std::cerr << std::endl << "vec1 sort greater:";
+    sort(vec1.begin(), vec1.end(), std::greater<int>());
+    for (auto val : vec1) {
+      std::cerr << " " << val;
+    }
+    std::cerr << std::endl << "vec1 sort less:";
+    sort(vec1.begin(), vec1.end(), std::less<int>());
+    for (auto val : vec1) {
+      std::cerr << " " << val;
+    }
+    std::cerr << std::endl;
   }
   return 0;
 }
