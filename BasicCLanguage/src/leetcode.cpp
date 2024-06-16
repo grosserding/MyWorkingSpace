@@ -209,5 +209,61 @@ int main(int argc, char **argv) {
     }
     std::cerr << std::endl;
   }
+  // *27 移除元素
+  {
+    std::cerr << "**No. 27 移除元素" << std::endl;
+    std::vector<int> vec1{0, 1, 2, 3, 4, 5, 6, 7};
+    std::cerr << "vec1.capacity = " << vec1.capacity() << std::endl;
+    auto it1 = vec1.begin() + 3;
+    auto it2 = it1 + 1;
+    vec1.erase(it1);
+    std::cerr << "vec1.capacity after = " << vec1.capacity() << std::endl;
+    std::cerr << "vec1 after erase:";
+    for (auto val : vec1) {
+      std::cerr << " " << val;
+    }
+    std::cerr << std::endl;
+    std::cerr << "it1 now = " << *it1 << std::endl;
+    // **** experiment 1 **** //
+    {
+      std::vector<int> vec1{0};
+      auto it1 = vec1.begin();
+      auto it2 = it1 + 1;
+      std::cerr << "it1 == vec1.end?: " << (it1 == vec1.end()) << std::endl;
+      std::cerr << "it2 == vec1.end?: " << (it2 == vec1.end()) << std::endl;
+      vec1.erase(it1);
+      std::cerr << "it1 == vec1.end?: " << (it1 == vec1.end()) << std::endl;
+      std::cerr << "it2 == vec1.end?: " << (it2 == vec1.end()) << std::endl;
+    }
+    // **** experiment 2 **** //
+    {
+      std::vector<int> vec1{1, 2};
+      auto it1 = vec1.begin();
+      std::cerr << "*it1 before erase = " << *it1 << std::endl;
+      vec1.erase(it1);
+      std::cerr << "*it1 after erase = " << *it1 << std::endl;
+    }
+    // ********* //
+    {
+      // std::vector<int> nums{0, 1, 2, 3, 4, 5, 6, 7, 3, 5, 63, 3, 2};
+      std::vector<int> nums{3, 2, 2, 3};
+      int val = 3;
+      int count = 0;
+      int total = nums.size();
+      auto it1 = nums.begin();
+      auto it2 = it1;
+      while (it1 != nums.end()) {
+        if (*it1 == val) {
+          it2 = it1 + 1;
+          nums.erase(it1);
+          count++;
+          it1 = it2;
+        } else {
+          it1++;
+        }
+      }
+      std::cerr << "left = " << total - count << std::endl;
+    }
+  }
   return 0;
 }
