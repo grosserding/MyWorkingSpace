@@ -45,6 +45,13 @@ int main(int argc, char **argv) {
     std::cerr << "aa_right = " << aa_right << std::endl; // 这样就对了
     std::string aa_right_another = std::string(2, a);
     std::cerr << "aa_right = " << aa_right_another << std::endl; // 这样也可以
+    // substr和find
+    std::string catanddog = "cat:dog";
+    std::string cat = catanddog.substr(0, 3);
+    std::string dog = catanddog.substr(catanddog.find(":") + 1);
+    std::cerr << "cat = " << cat << ", dog = " << dog << std::endl;
+    int pos_none = catanddog.find("!");
+    std::cerr << "pos_none = " << pos_none << std::endl;
   }
   // *ptrs
   std::cerr << "**********ptrs**********" << std::endl;
