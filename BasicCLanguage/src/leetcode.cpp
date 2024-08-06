@@ -3,6 +3,77 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+int minSubArrayLen(int target, std::vector<int> &nums) {
+  int left = 0;
+  int right = 1;
+  int n = nums.size();
+  int sum = nums[0];
+  int len = n + 1;
+  while (left < n && right <= n) {
+    if (sum >= target) {
+      len = std::min(len, right - left);
+      std::cerr << "sum = " << sum << ", ";
+      sum -= nums[left];
+      left++;
+      std::cerr << left << "------" << right << std::endl;
+    } else {
+      if (right == n)
+        break;
+      sum += nums[right];
+      std::cerr << "sum = " << sum << ", ";
+      right++;
+      std::cerr << left << "------" << right << std::endl;
+    }
+  }
+  return (len == n + 1) ? 0 : len;
+}
+
+std::vector<std::vector<int>> threeSum(std::vector<int> &nums) {
+  int n = nums.size();
+  sort(nums.begin(), nums.end());
+  std::vector<std::vector<int>> res;
+  for (int i = 0; i + 2 < nums.size(); i++) {
+    int j = i + 1;
+    int k = n - 1;
+    std::cerr << i << ", " << j << ", " << k << std::endl;
+    while (j < k) {
+      if (nums[i] + nums[j] + nums[k] == 0) {
+        std::vector<int> tmp = {nums[i], nums[j], nums[k]};
+        res.emplace_back(tmp);
+        while (j < k) {
+          std::cerr << "while(j<k), j = " << j << ", k = " << k << std::endl;
+          if (nums[j] == nums[j + 1]) {
+            j++;
+            std::cerr << i << ", " << j << ", " << k << std::endl;
+          }
+          if (nums[k] == nums[k - 1]) {
+            k--;
+            std::cerr << i << ", " << j << ", " << k << std::endl;
+          }
+        }
+        j++;
+        k--;
+        std::cerr << i << ", " << j << ", " << k << std::endl;
+      } else if (nums[i] + nums[j] + nums[k] < 0) {
+        j++;
+        std::cerr << i << ", " << j << ", " << k << std::endl;
+      } else {
+        k--;
+        std::cerr << i << ", " << j << ", " << k << std::endl;
+      }
+    }
+    while (i + 3 < nums.size()) {
+      if (nums[i] == nums[i + 1]) {
+        i++;
+      } else {
+        break;
+      }
+    }
+  }
+  return res;
+}
+
 int main(int argc, char **argv) {
   // *105. 前序中序构造二叉树
   {
@@ -244,26 +315,42 @@ int main(int argc, char **argv) {
       std::cerr << "*it1 after erase = " << *it1 << std::endl;
     }
     // ********* //
-    {
-      // std::vector<int> nums{0, 1, 2, 3, 4, 5, 6, 7, 3, 5, 63, 3, 2};
-      std::vector<int> nums{3, 2, 2, 3};
-      int val = 3;
-      int count = 0;
-      int total = nums.size();
-      auto it1 = nums.begin();
-      auto it2 = it1;
-      while (it1 != nums.end()) {
-        if (*it1 == val) {
-          it2 = it1 + 1;
-          nums.erase(it1);
-          count++;
-          it1 = it2;
-        } else {
-          it1++;
-        }
-      }
-      std::cerr << "left = " << total - count << std::endl;
-    }
+    // {
+    //   // std::vector<int> nums{0, 1, 2, 3, 4, 5, 6, 7, 3, 5, 63, 3, 2};
+    //   std::vector<int> nums{3, 2, 2, 3};
+    //   int val = 3;
+    //   int count = 0;
+    //   int total = nums.size();
+    //   auto it1 = nums.begin();
+    //   auto it2 = it1;
+    //   while (it1 != nums.end()) {
+    //     if (*it1 == val) {
+    //       it2 = it1 + 1;
+    //       nums.erase(it1);
+    //       count++;
+    //       it1 = it2;
+    //     } else {
+    //       it1++;
+    //     }
+    //   }
+    //   std::cerr << "left = " << total - count << std::endl;
+    // }
+  }
+
+  // *15 三数之和
+  {
+    std::cerr << "**No. 15 三数之和" << std::endl;
+    std::vector<int> tmp = {-4, -1, -1, 0, 1, 2};
+    // threeSum(tmp);
+  }
+
+  // *209 长度最小的子数组
+  {
+    std::cerr << "**No. 209 长度最小的子数组" << std::endl;
+    std::vector<int> tmp = {2, 3, 1, 2, 4, 3};
+    int target = 7;
+    auto res = minSubArrayLen(target, tmp);
+    std::cerr << "result = " << res << std::endl;
   }
   return 0;
 }
