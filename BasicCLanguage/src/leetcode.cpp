@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+using namespace std;
 
 int minSubArrayLen(int target, std::vector<int> &nums) {
   int left = 0;
@@ -72,6 +73,52 @@ std::vector<std::vector<int>> threeSum(std::vector<int> &nums) {
     }
   }
   return res;
+}
+
+int lengthOfLongestSubstring(std::string s) {
+  int n = s.size();
+  if (n == 0 || n == 1)
+    return n;
+  auto p = 1;
+  auto q = p + 1;
+  std::unordered_map<char, int> hash;
+  int res = 1;
+  hash[s[p - 1]] = p;
+  while (true) {
+    if (q > n)
+      break;
+    int flag = hash[s[q - 1]];
+    if (flag == 0) {
+      hash[s[q - 1]] = q;
+      res = std::max(res, q - p + 1);
+      std::cerr << "p = " << p << ", q = " << q << ", res = " << res
+                << std::endl;
+      q++;
+    } else {
+      while (p != flag) {
+        hash[s[p - 1]] = 0;
+        p++;
+      }
+      p++;
+      hash[s[q - 1]] = q;
+      q++;
+    }
+  }
+  return res;
+}
+
+bool isIsomorphic(std::string s, std::string t) {
+  unordered_map<char, char> hash;
+  for (int i = 0; i < s.size(); i++) {
+    auto it = hash.find(s[i]);
+    if (it == hash.end()) {
+      hash[s[i]] = hash[t[i]];
+    } else {
+      if (it->second != t[i])
+        return false;
+    }
+  }
+  return true;
 }
 
 int main(int argc, char **argv) {
@@ -351,6 +398,14 @@ int main(int argc, char **argv) {
     int target = 7;
     auto res = minSubArrayLen(target, tmp);
     std::cerr << "result = " << res << std::endl;
+  }
+
+  // *3 无重复字符的最长子串
+  {
+    std::cerr << "**No. 3 无重复字符的最长子串" << std::endl;
+    std::string str = "pwwkew";
+    auto res = lengthOfLongestSubstring(str);
+    std::cerr << "res = " << res << std::endl;
   }
   return 0;
 }
