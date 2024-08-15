@@ -50,6 +50,6 @@ int main(int argc, char** argv) {
   cv::imshow("deepclone", image_deepclone);
   cv::imshow("shallow", image_shalowclone);
   cv::waitKey(0);
-  // cv::destroyAllWindows();          
+  // cv::destroyAllWindows();
   return 0;
 }

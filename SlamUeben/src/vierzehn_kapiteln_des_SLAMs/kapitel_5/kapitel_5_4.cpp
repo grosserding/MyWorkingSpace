@@ -111,8 +111,7 @@ int main(int argc, char **argv) {
       }
     }
   }
-  std::cerr << "pointcloud has " << pc_ptr->size() << " points."
-            << std::endl;
+  std::cerr << "pointcloud has " << pc_ptr->size() << " points." << std::endl;
   pcl::io::savePCDFileBinary("../data/slam14/kap5/generated_map.pcd", *pc_ptr);
   return 0;
 }
