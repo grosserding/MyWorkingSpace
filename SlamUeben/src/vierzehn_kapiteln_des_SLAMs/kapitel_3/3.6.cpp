@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
 
   // Use Euler angle
   auto RPY = rot_vec.toRotationMatrix().eulerAngles(0, 1, 2);
+  std::cerr << "rot_vec = " << rot_vec.matrix() << std::endl;
   std::cerr << "RPY = " << RPY.transpose() << std::endl;
   std::cerr << "typeid(RPY).name() = " << typeid(RPY).name() << std::endl;
 
