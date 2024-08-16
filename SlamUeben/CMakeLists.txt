@@ -8,11 +8,13 @@ find_package(Sophus REQUIRED)
 find_package(fmt REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
+find_package(Ceres REQUIRED)
 include_directories(include 
   /usr/include/eigen3
   ${Sophus_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS})
+  ${PCL_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS})
 
 add_definitions(${PCL_DEFINITIONS})
 add_library(common_lib SHARED src/common/csv_utils.cpp)
@@ -26,7 +28,10 @@ add_executable(14Kap_3_2 src/vierzehn_kapiteln_des_SLAMs/kapitel_3/3.2.cpp)
 add_executable(14Kap_3_6 src/vierzehn_kapiteln_des_SLAMs/kapitel_3/3.6.cpp)
 add_executable(14Kap_5_3 src/vierzehn_kapiteln_des_SLAMs/kapitel_5/kapitel_5_3.cpp)
 add_executable(14Kap_5_4 src/vierzehn_kapiteln_des_SLAMs/kapitel_5/kapitel_5_4.cpp)
+add_executable(14Kap_6_3 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3.cpp)
+
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
 target_link_libraries(14Kap_5_3 ${OpenCV_LIBS})
 target_link_libraries(14Kap_5_4 ${OpenCV_LIBS} ${PCL_LIBRARIES} ${Sophus_LIBS})
+target_link_libraries(14Kap_6_3 ${OpenCV_LIBS} ${CERES_LIBRARIES})
