@@ -1,7 +1,11 @@
 #include <ceres/ceres.h>
-#include <opencv2/core/core.hpp>
+
 #include <chrono>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Geometry>
 #include <iostream>
+#include <opencv2/core/core.hpp>
 
 // fitting curve: y = exp(ax^2 + bx + c)
 
@@ -60,7 +64,9 @@ int main(int argc, char** argv) {
   ceres::Solve(options, &problem, &summary);
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::cerr << "time cost: "
-            << std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count()
+            << std::chrono::duration_cast<std::chrono::duration<double>>(t2 -
+                                                                         t1)
+                   .count()
             << std::endl;
 
   // 输出结果
@@ -68,5 +74,12 @@ int main(int argc, char** argv) {
   std::cerr << "estimated a, b, c = " << abc[0] << " " << abc[1] << " "
             << abc[2] << std::endl;
 
-  return 0;
+  //   整理过程：
+  //   1.
+  //   定义CostFunction模型，并在类中定义带模板参数的()运算符，这样该类成了一个拟函数(Functor)。
+  //   比如该类A的对象a，可以调用a<double>()方法。使对象具有函数行为。
+  //   2. 调用AddResidualBlock将误差项加入到目标函数。求导方式有
+  //   ceres的autodiff自动求导，numericdiff数值求导，解析求导。这里用了自动求导。ceres的自动求导也是数值导数。
+  //   3. 自动求导要指定误差项维度、优化变量维度。这里误差：1，维度：3。
+  //   4. 调用solve函数求解。可以再option配置迭代次数、步长等。
 }
