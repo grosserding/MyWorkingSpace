@@ -38,15 +38,20 @@ add_executable(14Kap_5_3
 add_executable(14Kap_5_4
                src/vierzehn_kapiteln_des_SLAMs/kapitel_5/kapitel_5_4.cpp)
 add_executable(14Kap_6_3 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3.cpp)
-# add_executable(14Kap_6_3_self
-# src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3_self.cpp)
+add_executable(14Kap_6_3_self
+               src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3_self.cpp)
 add_executable(14Kap_6_4 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.4.cpp)
+add_executable(calcTransform
+               src/vierzehn_kapiteln_des_SLAMs/kapitel_6/calcTransform.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
 target_link_libraries(14Kap_5_3 ${OpenCV_LIBS})
 target_link_libraries(14Kap_5_4 ${OpenCV_LIBS} ${PCL_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(14Kap_6_3 ${OpenCV_LIBS} ${CERES_LIBRARIES})
-# target_link_libraries(14Kap_6_3_self ${OpenCV_LIBS} ${CERES_LIBRARIES})
+target_link_libraries(14Kap_6_3_self ${OpenCV_LIBS} ${CERES_LIBRARIES}
+                      ${Sophus_LIBS})
+target_link_libraries(calcTransform ${OpenCV_LIBS} ${CERES_LIBRARIES}
+                      ${Sophus_LIBS})
 target_link_libraries(14Kap_6_4 ${OpenCV_LIBS} ${G2O_CORE_LIBRARY}
                       ${G2O_STUFF_LIBRARY})

@@ -12,4 +12,5 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 
+// y = exp(ax^2 + bx + c)
 int main(int argc, char** argv) { return 0; }
