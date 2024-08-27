@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.3.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
+set(G2O_ROOT /usr/local/include/g2o)
+list(APPEND CMAKE_MODULE_PATH /home/westwell/Ding/github/g2o/cmake_modules)
 
 project(SlamUeben)
 find_package(Sophus REQUIRED)
@@ -9,7 +11,7 @@ find_package(fmt REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
 find_package(Ceres REQUIRED)
-find_package(G2O REQUIRED PATH /usr/local/include/g2o)
+find_package(G2O REQUIRED)
 include_directories(
   include 
   /usr/include/eigen3
