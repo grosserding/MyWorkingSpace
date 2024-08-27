@@ -8,7 +8,6 @@
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
 #include <g2o/solvers/eigen/linear_solver_eigen.h>
 #include <g2o/types/sba/types_six_dof_expmap.h>
-#include <opencv2/imgcodecs/legacy/constants_c.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -25,34 +24,37 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-template <typename T> inline T DotProduct(const T x[3], const T y[3]) {
+template<typename T> 
+inline T DotProduct(const T x[3], const T y[3]) {
   return (x[0] * y[0] + x[1] * y[1] + x[2] * y[2]);
 }
-
-template <typename T>
-inline void CrossProduct(const T x[3], const T y[3], T result[3]) {
+ 
+template<typename T>
+inline void CrossProduct(const T x[3], const T y[3], T result[3]){
   result[0] = x[1] * y[2] - x[2] * y[1];
   result[1] = x[2] * y[0] - x[0] * y[2];
   result[2] = x[0] * y[1] - x[1] * y[0];
 }
 
-// Converts from a angle anxis to quaternion :
-template <typename T>
-inline void AngleAxisToQuaternion(const T *angle_axis, T *quaternion) {
-  const T &a0 = angle_axis[0];
-  const T &a1 = angle_axis[1];
-  const T &a2 = angle_axis[2];
+// Converts from a angle anxis to quaternion : 
+template<typename T>
+inline void AngleAxisToQuaternion(const T* angle_axis, T* quaternion){
+  const T& a0 = angle_axis[0];
+  const T& a1 = angle_axis[1];
+  const T& a2 = angle_axis[2];
   const T theta_squared = a0 * a0 + a1 * a1 + a2 * a2;
-
-  if (theta_squared > T(std::numeric_limits<double>::epsilon())) {
+  
+  
+  if(theta_squared > T(std::numeric_limits<double>::epsilon()) ){
     const T theta = sqrt(theta_squared);
     const T half_theta = theta * T(0.5);
-    const T k = sin(half_theta) / theta;
+    const T k = sin(half_theta)/theta;
     quaternion[0] = cos(half_theta);
     quaternion[1] = a0 * k;
     quaternion[2] = a1 * k;
     quaternion[3] = a2 * k;
-  } else { // in case if theta_squared is zero
+  }
+  else{ // in case if theta_squared is zero
     const T k(0.5);
     quaternion[0] = T(1.0);
     quaternion[1] = a0 * k;
@@ -60,47 +62,50 @@ inline void AngleAxisToQuaternion(const T *angle_axis, T *quaternion) {
     quaternion[3] = a2 * k;
   }
 }
-
-template <typename T>
-inline void QuaternionToAngleAxis(const T *quaternion, T *angle_axis) {
-  const T &q1 = quaternion[1];
-  const T &q2 = quaternion[2];
-  const T &q3 = quaternion[3];
+ 
+ 
+template<typename T>
+inline void QuaternionToAngleAxis(const T* quaternion, T* angle_axis){
+  const T& q1 = quaternion[1];
+  const T& q2 = quaternion[2];
+  const T& q3 = quaternion[3];
   const T sin_squared_theta = q1 * q1 + q2 * q2 + q3 * q3;
-
+  
   // For quaternions representing non-zero rotation, the conversion
   // is numercially stable
-  if (sin_squared_theta > T(std::numeric_limits<double>::epsilon())) {
+  if(sin_squared_theta > T(std::numeric_limits<double>::epsilon()) ){
     const T sin_theta = sqrt(sin_squared_theta);
-    const T &cos_theta = quaternion[0];
-
+    const T& cos_theta = quaternion[0];
+    
     // If cos_theta is negative, theta is greater than pi/2, which
     // means that angle for the angle_axis vector which is 2 * theta
     // would be greater than pi...
-
-    const T two_theta =
-        T(2.0) * ((cos_theta < 0.0) ? atan2(-sin_theta, -cos_theta)
-                                    : atan2(sin_theta, cos_theta));
+    
+    const T two_theta = T(2.0) * ((cos_theta < 0.0)
+				  ? atan2(-sin_theta, -cos_theta)
+				  : atan2(sin_theta, cos_theta));
     const T k = two_theta / sin_theta;
-
+    
     angle_axis[0] = q1 * k;
     angle_axis[1] = q2 * k;
     angle_axis[2] = q3 * k;
-  } else {
+  }
+  else{
     // For zero rotation, sqrt() will produce NaN in derivative since
-    // the argument is zero. By approximating with a Taylor series,
-    // and truncating at one term, the value and first derivatives will be
+    // the argument is zero. By approximating with a Taylor series, 
+    // and truncating at one term, the value and first derivatives will be 
     // computed correctly when Jets are used..
     const T k(2.0);
     angle_axis[0] = q1 * k;
     angle_axis[1] = q2 * k;
     angle_axis[2] = q3 * k;
   }
+  
 }
-
-template <typename T>
-inline void AngleAxisRotatePoint(const T angle_axis[3], const T pt[3],
-                                 T result[3]) {
+ 
+ 
+template<typename T>
+inline void AngleAxisRotatePoint(const T angle_axis[3], const T pt[3], T result[3]) {
   const T theta2 = DotProduct(angle_axis, angle_axis);
   if (theta2 > T(std::numeric_limits<double>::epsilon())) {
     // Away from zero, use the rodriguez formula
@@ -117,22 +122,23 @@ inline void AngleAxisRotatePoint(const T angle_axis[3], const T pt[3],
     const T costheta = cos(theta);
     const T sintheta = sin(theta);
     const T theta_inverse = 1.0 / theta;
-
-    const T w[3] = {angle_axis[0] * theta_inverse,
-                    angle_axis[1] * theta_inverse,
-                    angle_axis[2] * theta_inverse};
-
+ 
+    const T w[3] = { angle_axis[0] * theta_inverse,
+                     angle_axis[1] * theta_inverse,
+                     angle_axis[2] * theta_inverse };
+ 
     // Explicitly inlined evaluation of the cross product for
     // performance reasons.
     /*const T w_cross_pt[3] = { w[1] * pt[2] - w[2] * pt[1],
                               w[2] * pt[0] - w[0] * pt[2],
                               w[0] * pt[1] - w[1] * pt[0] };*/
     T w_cross_pt[3];
-    CrossProduct(w, pt, w_cross_pt);
-
+    CrossProduct(w, pt, w_cross_pt);                          
+ 
+ 
     const T tmp = DotProduct(w, pt) * (T(1.0) - costheta);
     //    (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) * (T(1.0) - costheta);
-
+ 
     result[0] = pt[0] * costheta + w_cross_pt[0] * sintheta + w[0] * tmp;
     result[1] = pt[1] * costheta + w_cross_pt[1] * sintheta + w[1] * tmp;
     result[2] = pt[2] * costheta + w_cross_pt[2] * sintheta + w[2] * tmp;
@@ -158,8 +164,8 @@ inline void AngleAxisRotatePoint(const T angle_axis[3], const T pt[3],
                               angle_axis[2] * pt[0] - angle_axis[0] * pt[2],
                               angle_axis[0] * pt[1] - angle_axis[1] * pt[0] };*/
     T w_cross_pt[3];
-    CrossProduct(angle_axis, pt, w_cross_pt);
-
+    CrossProduct(angle_axis, pt, w_cross_pt); 
+ 
     result[0] = pt[0] + w_cross_pt[0];
     result[1] = pt[1] + w_cross_pt[1];
     result[2] = pt[2] + w_cross_pt[2];
@@ -170,77 +176,49 @@ struct ICPCeres {
   ICPCeres(Point3f uvw, Point3f xyz) : _uvw(uvw), _xyz(xyz) {}
   // 残差的计算
   template <typename T>
-  bool operator()(const T *const camera, // 模型参数，有4维
-                  T *residual) const     // 残差
+  bool operator()(const T* const camera,  // 模型参数，有4维
+                  T* residual) const      // 残差
   {
     T p[3];
     T point[3];
     point[0] = T(_xyz.x);
     point[1] = T(_xyz.y);
     point[2] = T(_xyz.z);
-    AngleAxisRotatePoint(camera, point, p); //计算RP
+    AngleAxisRotatePoint(camera, point, p);  //计算RP
     p[0] += camera[3];
     p[1] += camera[4];
-    p[2] += camera[5]; //相机坐标2
+    p[2] += camera[5];  //相机坐标2
     residual[0] = T(_uvw.x) - p[0];
     residual[1] = T(_uvw.y) - p[1];
     residual[2] = T(_uvw.z) - p[2];
     return true;
   }
-  static ceres::CostFunction *Create(const Point3f uvw, const Point3f xyz) {
+  static ceres::CostFunction* Create(const Point3f uvw, const Point3f xyz) {
     return (new ceres::AutoDiffCostFunction<ICPCeres, 3, 6>(
         new ICPCeres(uvw, xyz)));
   }
   const Point3f _uvw;
   const Point3f _xyz;
 };
-void find_feature_matches(const Mat &img_1, const Mat &img_2,
-                          std::vector<KeyPoint> &keypoints_1,
-                          std::vector<KeyPoint> &keypoints_2,
-                          std::vector<DMatch> &matches);
+void find_feature_matches(const Mat& img_1, const Mat& img_2,
+                          std::vector<KeyPoint>& keypoints_1,
+                          std::vector<KeyPoint>& keypoints_2,
+                          std::vector<DMatch>& matches);
 
 // 像素坐标转相机归一化坐标
-Point2d pixel2cam(const Point2d &p, const Mat &K);
+Point2d pixel2cam(const Point2d& p, const Mat& K);
 
-void pose_estimation_3d3d(const vector<Point3f> &pts1,
-                          const vector<Point3f> &pts2, Mat &R, Mat &t);
-int main(int argc, char **argv) {
-  if (argc != 5) {
-    cout << "usage: pose_estimation_3d3d img1 img2 depth1 depth2" << endl;
-    return 1;
-  }
-  double camera[6] = {0, 1, 2, 0, 0, 0};
-  //-- 读取图像
-  Mat img_1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-  Mat img_2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
-
-  vector<KeyPoint> keypoints_1, keypoints_2;
-  vector<DMatch> matches;
-  find_feature_matches(img_1, img_2, keypoints_1, keypoints_2, matches);
-  cout << "一共找到了" << matches.size() << "组匹配点" << endl;
-
-  // 建立3D点
-  Mat depth1 = imread(
-      argv[3], CV_LOAD_IMAGE_UNCHANGED); // 深度图为16位无符号数，单通道图像
-  Mat depth2 = imread(
-      argv[4], CV_LOAD_IMAGE_UNCHANGED); // 深度图为16位无符号数，单通道图像
-  Mat K = (Mat_<double>(3, 3) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1);
+void pose_estimation_3d3d(const vector<Point3f>& pts1,
+                          const vector<Point3f>& pts2, Mat& R, Mat& t);
+int main(int argc, char** argv) {
   vector<Point3f> pts1, pts2;
-
-  for (DMatch m : matches) {
-    ushort d1 = depth1.ptr<unsigned short>(
-        int(keypoints_1[m.queryIdx].pt.y))[int(keypoints_1[m.queryIdx].pt.x)];
-    ushort d2 = depth2.ptr<unsigned short>(
-        int(keypoints_2[m.trainIdx].pt.y))[int(keypoints_2[m.trainIdx].pt.x)];
-    if (d1 == 0 || d2 == 0) // bad depth
-      continue;
-    Point2d p1 = pixel2cam(keypoints_1[m.queryIdx].pt, K);
-    Point2d p2 = pixel2cam(keypoints_2[m.trainIdx].pt, K);
-    float dd1 = float(d1) / 5000.0;
-    float dd2 = float(d2) / 5000.0;
-    pts1.push_back(Point3f(p1.x * dd1, p1.y * dd1, dd1));
-    pts2.push_back(Point3f(p2.x * dd2, p2.y * dd2, dd2));
-  }
+  double camera[6] = {0, 1, 2, 0, 0, 0};
+  pts1.push_back(Point3f(-107.339447,368.235229,7.203767));
+  pts1.push_back(Point3f(-13.938293,-3.508911,18.397972));
+  pts1.push_back(Point3f(36.682861,444.794983,-2.003768));
+  pts2.push_back(Point3f(-106.496429,369.124573,6.662053));
+  pts2.push_back(Point3f(0.446471,0.734270,-1.074847));
+  pts2.push_back(Point3f(35.070869,450.609863,7.601254));
 
   cout << "3d-3d pairs: " << pts1.size() << endl;
   Mat R, t;
@@ -263,7 +241,7 @@ int main(int argc, char **argv) {
   }
   ceres::Problem problem;
   for (int i = 0; i < pts2.size(); ++i) {
-    ceres::CostFunction *cost_function = ICPCeres::Create(pts2[i], pts1[i]);
+    ceres::CostFunction* cost_function = ICPCeres::Create(pts2[i], pts1[i]);
     problem.AddResidualBlock(cost_function, NULL /* squared loss */, camera);
   }
   ceres::Solver::Options options;
@@ -274,25 +252,25 @@ int main(int argc, char **argv) {
   std::cout << summary.FullReport() << "\n";
 
   Mat R_vec =
-      (Mat_<double>(3, 1) << camera[0], camera[1], camera[2]); //数组转cv向量
+      (Mat_<double>(3, 1) << camera[0], camera[1], camera[2]);  //数组转cv向量
   Mat R_cvest;
-  Rodrigues(R_vec, R_cvest); //罗德里格斯公式，旋转向量转旋转矩阵
+  Rodrigues(R_vec, R_cvest);  //罗德里格斯公式，旋转向量转旋转矩阵
   cout << "R_cvest=" << R_cvest << endl;
   Eigen::Matrix<double, 3, 3> R_est;
-  cv2eigen(R_cvest, R_est); // cv矩阵转eigen矩阵
+  cv2eigen(R_cvest, R_est);  // cv矩阵转eigen矩阵
   cout << "R_est=" << R_est << endl;
   Eigen::Vector3d t_est(camera[3], camera[4], camera[5]);
   cout << "t_est=" << t_est << endl;
-  Eigen::Isometry3d T(R_est); //构造变换矩阵与输出
+  Eigen::Isometry3d T(R_est);  //构造变换矩阵与输出
   T.pretranslate(t_est);
   cout << T.matrix() << endl;
 
   return 0;
 }
-void find_feature_matches(const Mat &img_1, const Mat &img_2,
-                          std::vector<KeyPoint> &keypoints_1,
-                          std::vector<KeyPoint> &keypoints_2,
-                          std::vector<DMatch> &matches) {
+void find_feature_matches(const Mat& img_1, const Mat& img_2,
+                          std::vector<KeyPoint>& keypoints_1,
+                          std::vector<KeyPoint>& keypoints_2,
+                          std::vector<DMatch>& matches) {
   //-- 初始化
   Mat descriptors_1, descriptors_2;
   // used in OpenCV3
@@ -324,10 +302,8 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
   //即是最相似的和最不相似的两组点之间的距离
   for (int i = 0; i < descriptors_1.rows; i++) {
     double dist = match[i].distance;
-    if (dist < min_dist)
-      min_dist = dist;
-    if (dist > max_dist)
-      max_dist = dist;
+    if (dist < min_dist) min_dist = dist;
+    if (dist > max_dist) max_dist = dist;
   }
 
   printf("-- Max dist : %f \n", max_dist);
@@ -341,14 +317,14 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
   }
 }
 
-Point2d pixel2cam(const Point2d &p, const Mat &K) {
+Point2d pixel2cam(const Point2d& p, const Mat& K) {
   return Point2d((p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
                  (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1));
 }
 
-void pose_estimation_3d3d(const vector<Point3f> &pts1,
-                          const vector<Point3f> &pts2, Mat &R, Mat &t) {
-  Point3f p1, p2; // center of mass
+void pose_estimation_3d3d(const vector<Point3f>& pts1,
+                          const vector<Point3f>& pts2, Mat& R, Mat& t) {
+  Point3f p1, p2;  // center of mass
   int N = pts1.size();
   for (int i = 0; i < N; i++) {
     p1 += pts1[i];
@@ -356,7 +332,7 @@ void pose_estimation_3d3d(const vector<Point3f> &pts1,
   }
   p1 = Point3f(Vec3f(p1) / N);
   p2 = Point3f(Vec3f(p2) / N);
-  vector<Point3f> q1(N), q2(N); // remove the center
+  vector<Point3f> q1(N), q2(N);  // remove the center
   for (int i = 0; i < N; i++) {
     q1[i] = pts1[i] - p1;
     q2[i] = pts2[i] - p2;
@@ -371,8 +347,8 @@ void pose_estimation_3d3d(const vector<Point3f> &pts1,
   cout << "W=" << W << endl;
 
   // SVD on W
-  Eigen::JacobiSVD<Eigen::Matrix3d> svd(W, Eigen::ComputeFullU |
-                                               Eigen::ComputeFullV);
+  Eigen::JacobiSVD<Eigen::Matrix3d> svd(
+      W, Eigen::ComputeFullU | Eigen::ComputeFullV);
   Eigen::Matrix3d U = svd.matrixU();
   Eigen::Matrix3d V = svd.matrixV();
   cout << "U=" << U << endl;
