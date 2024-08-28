@@ -6,6 +6,7 @@ set(G2O_ROOT /usr/local/include/g2o)
 list(APPEND CMAKE_MODULE_PATH /home/westwell/Ding/github/g2o/cmake_modules)
 
 project(SlamUeben)
+find_package(Boost REQUIRED COMPONENTS system chrono thread)
 find_package(Sophus REQUIRED)
 find_package(fmt REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -20,8 +21,10 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${G2O_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   )
 
+# link_libraries(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 add_library(common_lib SHARED src/common/csv_utils.cpp)
 add_library(LibrariesUebenLib SHARED src/lib/libraries_ueben_lib.cpp)
@@ -38,6 +41,7 @@ add_executable(14Kap_6_3 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3.cpp)
 add_executable(14Kap_6_3_self src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3_self.cpp)
 add_executable(14Kap_6_4 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.4.cpp)
 add_executable(calcTransform src/vierzehn_kapiteln_des_SLAMs/kapitel_6/calcTransform.cpp)
+add_executable(pcl_icp src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_icp.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
@@ -47,3 +51,4 @@ target_link_libraries(14Kap_6_3 ${OpenCV_LIBS} ${CERES_LIBRARIES})
 target_link_libraries(14Kap_6_3_self ${OpenCV_LIBS} ${CERES_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(calcTransform ${OpenCV_LIBS} ${CERES_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(14Kap_6_4 ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${G2O_STUFF_LIBRARY})
+target_link_libraries(pcl_icp ${PCL_LIBRARIES} ${Boost_LIBRARIES})
