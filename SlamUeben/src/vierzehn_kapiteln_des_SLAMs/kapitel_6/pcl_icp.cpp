@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
   // --------------------加载源点云-----------------------
   pcl::PointCloud<pcl::PointXYZ>::Ptr source(
       new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::io::loadPCDFile<pcl::PointXYZ>("tunnel_dense_raw_fit.pcd", *source);
+  pcl::io::loadPCDFile<pcl::PointXYZ>("tunnel_dense_raw_fit_subsampled.pcd", *source);
 
   cout << "从源点云中读取 " << source->size() << " 个点" << endl;
 
@@ -36,23 +36,24 @@ int main(int argc, char** argv) {
   icp.setTransformationEpsilon(1e-10);  // 为终止条件设置最小转换差异
   std::cerr << "before align.3" << std::endl;
   icp.setMaxCorrespondenceDistance(
-      1);  // 设置对应点对之间的最大距离（此值对配准结果影响较大）。
+      0.1);  // 设置对应点对之间的最大距离（此值对配准结果影响较大）。
   icp.setEuclideanFitnessEpsilon(
       0.001);  // 设置收敛条件是均方误差和小于阈值， 停止迭代；
-  icp.setMaximumIterations(35);               // 最大迭代次数
+  icp.setMaximumIterations(50);               // 最大迭代次数
   icp.setUseReciprocalCorrespondences(true);  //设置为true,则使用相互对应关系
+  icp.setRANSACOutlierRejectionThreshold(0.05);
   // 计算需要的刚体变换以便将输入的源点云匹配到目标点云
   pcl::PointCloud<pcl::PointXYZ>::Ptr icp_cloud(
       new pcl::PointCloud<pcl::PointXYZ>);
   std::cerr << "before align." << std::endl;
   icp.align(*icp_cloud);
-  cout << "Applied " << 35 << " ICP iterations in " << time.toc() << " ms"
+  cout << "Applied " << 100 << " ICP iterations in " << time.toc() << " ms"
        << endl;
   cout << "\nICP has converged, score is " << icp.getFitnessScore() << endl;
   cout << "变换矩阵：\n" << icp.getFinalTransformation() << endl;
   // 使用创建的变换对为输入源点云进行变换
   pcl::transformPointCloud(*source, *icp_cloud, icp.getFinalTransformation());
-  pcl::io::savePCDFileASCII("tunnel_dense_final_fit.pcd", *icp_cloud);
+  pcl::io::savePCDFileASCII("tunnel_dense_final_fit_subsampled.pcd", *icp_cloud);
   // ----------------点云可视化----------------------
 //   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(
 //       new pcl::visualization::PCLVisualizer("ICP配准结果"));
