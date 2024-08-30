@@ -42,6 +42,7 @@ add_executable(14Kap_6_3_self src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.3_self
 add_executable(14Kap_6_4 src/vierzehn_kapiteln_des_SLAMs/kapitel_6/6.4.cpp)
 add_executable(calcTransform src/vierzehn_kapiteln_des_SLAMs/kapitel_6/calcTransform.cpp)
 add_executable(pcl_icp src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_icp.cpp)
+add_executable(pcl_icp_jiguanju src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_icp_jiguanju.cpp)
 add_executable(14Kap_7_2_extract_feature src/vierzehn_kapiteln_des_SLAMs/kap_7/7.2.cpp)
 add_executable(14Kap_7_4_pose_estimation_2d2d src/vierzehn_kapiteln_des_SLAMs/kap_7/7.4.cpp)
 
@@ -54,5 +55,6 @@ target_link_libraries(14Kap_6_3_self ${OpenCV_LIBS} ${CERES_LIBRARIES} ${Sophus_
 target_link_libraries(calcTransform ${OpenCV_LIBS} ${CERES_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(14Kap_6_4 ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${G2O_STUFF_LIBRARY})
 target_link_libraries(pcl_icp ${PCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(pcl_icp_jiguanju ${PCL_LIBRARIES} ${Boost_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(14Kap_7_2_extract_feature ${OpenCV_LIBS})
 target_link_libraries(14Kap_7_4_pose_estimation_2d2d ${OpenCV_LIBS})
