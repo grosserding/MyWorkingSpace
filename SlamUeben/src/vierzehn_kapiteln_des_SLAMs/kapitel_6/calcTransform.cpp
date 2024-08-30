@@ -213,12 +213,12 @@ void pose_estimation_3d3d(const vector<Point3f>& pts1,
 int main(int argc, char** argv) {
   vector<Point3f> pts1, pts2;
   double camera[6] = {0, 1, 2, 0, 0, 0};
-  pts1.push_back(Point3f(-107.339447,368.235229,7.203767));
-  pts1.push_back(Point3f(-13.938293,-3.508911,18.397972));
-  pts1.push_back(Point3f(36.682861,444.794983,-2.003768));
-  pts2.push_back(Point3f(-106.496429,369.124573,6.662053));
-  pts2.push_back(Point3f(0.446471,0.734270,-1.074847));
-  pts2.push_back(Point3f(35.070869,450.609863,7.601254));
+  pts1.push_back(Point3f(6.744164,-4.803465,19.088015));
+  pts1.push_back(Point3f(-16.526842,-24.988289,24.896950));
+  pts1.push_back(Point3f(-26.879400,-15.556376,25.190968));
+  pts2.push_back(Point3f(2036.775391,-134.411057,8.761057));
+  pts2.push_back(Point3f(2006.234863,-129.508087,13.792852));
+  pts2.push_back(Point3f(2006.752686,-115.518784,13.660910));
 
   cout << "3d-3d pairs: " << pts1.size() << endl;
   Mat R, t;
