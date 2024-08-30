@@ -17,8 +17,11 @@
 using namespace std;
 
 Eigen::Matrix3f orthogonalize(const Eigen::Matrix3f& rotation_matrix) {
-  Eigen::HouseholderQR<Eigen::Matrix3f> qr(rotation_matrix);
-  Eigen::Matrix3f orthogonal_matrix = qr.householderQ();
+  Eigen::JacobiSVD<Eigen::Matrix3f> svd(
+      rotation_matrix, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  Eigen::Matrix3f U = svd.matrixU();
+  Eigen::Matrix3f V = svd.matrixV();
+  Eigen::Matrix3f orthogonal_matrix = U * V.transpose();
   return orthogonal_matrix;
 }
 
@@ -89,18 +92,17 @@ int main(int argc, char** argv) {
       5);  // 设置对应点对之间的最大距离（此值对配准结果影响较大）。
   icp.setEuclideanFitnessEpsilon(
       0.001);  // 设置收敛条件是均方误差和小于阈值， 停止迭代；
-  icp.setMaximumIterations(100);               // 最大迭代次数
+  icp.setMaximumIterations(100);              // 最大迭代次数
   icp.setUseReciprocalCorrespondences(true);  //设置为true,则使用相互对应关系
   // icp.setRANSACOutlierRejectionThreshold(0.1);
 
   Eigen::Matrix4f transform;
-  transform << 0.645348, 0.763614, -0.0204988, 2036.49, -0.762991, 0.645658,
-      0.0311512, -126.762, 0.0370227, -0.00446299, 0.999304, -10.586 + 16.9056,
-      0, 0, 0, 1;
+  transform << 0.992697, -0.118846, -0.0206809, 2032.41, 0.118981, 0.992882,
+      0.00541995, -138.669, 0.0198895, -0.007841, 0.999771, 6.38574, 0, 0, 0, 1;
   Sophus::SE3f se3_transform(transform);
   int counter = 0;
   for (auto file_tmp : file_lists) {
-    if ((counter++) % 5 != 0) continue;
+    if ((counter++) % 2 != 0) continue;
     std::cout << "************** loop head **************" << std::endl;
     size_t pos = file_tmp.find_last_of("/");
     std::string pure_filename = file_tmp.substr(pos + 1);
@@ -109,8 +111,13 @@ int main(int argc, char** argv) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr self_made(
         new pcl::PointCloud<pcl::PointXYZI>);
     pcl::io::loadPCDFile<pcl::PointXYZI>(file_tmp, *self_made);
-    cout << "read " << self_made->size() << " points" << endl;
+    std::cout << "read " << self_made->size() << " points" << std::endl;
+    std::cout << "transform before orthogonalize = \n"
+              << transform << std::endl;
+    transform.block<3, 3>(0, 0) = orthogonalize(transform.block<3, 3>(0, 0));
+    std::cout << "transform after orthogonalize = \n" << transform << std::endl;
     pcl::transformPointCloud(*self_made, *self_made, transform);
+    std::cout << "self_made pc pre-transformed" << std::endl;
     // pcl::io::savePCDFileBinary(
     //     "/home/westwell/qpilot_dev_ws/QP_tasks/QP-17109/"
     //     "tmp" +
@@ -124,19 +131,23 @@ int main(int argc, char** argv) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr icp_cloud(
         new pcl::PointCloud<pcl::PointXYZI>);
     icp.align(*icp_cloud);
-    cout << "Applied " << 100 << " ICP iterations in " << time.toc() << " ms"
-         << endl;
-    cout << "\nICP has converged, score is " << icp.getFitnessScore() << endl;
+    std::cout << "Applied " << 100 << " ICP iterations in " << time.toc()
+              << " ms" << std::endl;
+    std::cout << "\nICP has converged, score is " << icp.getFitnessScore()
+              << std::endl;
     Eigen::Matrix4f transform_icp = icp.getFinalTransformation();
-    Sophus::SE3f se3_icp(transform_icp);
+    // Sophus::SE3f se3_icp(transform_icp);
     std::cout << "se3_icp at " << pure_filename << " is: \n"
               << transform_icp << std::endl;
-    se3_transform = se3_icp * se3_transform;
+    // se3_transform = se3_icp * se3_transform;
     std::cout << "transform before = \n" << transform << std::endl;
-    transform = se3_transform.matrix();
+    transform = transform_icp * transform;
     std::cout << "transform after = \n" << transform << std::endl;
-    // transform.block<3, 3>(0, 0) = orthogonalize( transform.block<3, 3>(0,
-    // 0)); 使用创建的变换对为输入源点云进行变换
+    Eigen::Quaternionf quat(transform.block<3, 3>(0, 0));
+    quat.normalize();
+    transform.block<3, 3>(0, 0) = quat.toRotationMatrix();
+    std::cout << "transform after normalize = \n" << transform << std::endl;
+
     pcl::transformPointCloud(*self_made, *self_made, transform_icp);
     pcl::io::savePCDFileBinary(
         "/home/westwell/qpilot_dev_ws/QP_tasks/QP-17109/"
