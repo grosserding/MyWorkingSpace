@@ -97,8 +97,11 @@ int main(int argc, char** argv) {
   // icp.setRANSACOutlierRejectionThreshold(0.1);
 
   Eigen::Matrix4f transform;
-  transform << 0.944898, -0.326546, -0.0231239, 2074.67, 0.326798, 0.94506,
-      0.00803252, -263.074, 0.0192305, -0.0151468, 0.9997, 6.61943, 0, 0, 0, 1;
+  transform << 
+   0.329214 ,   0.944246,  -0.0042703 ,     1907.7,
+  -0.943573 ,   0.329145 ,  0.0365108 ,   -438.885,
+  0.0358807, -0.00799053 ,   0.999324 ,    7.03776,
+          0  ,         0 ,          0  ,         1;
   Sophus::SE3f se3_transform(transform);
   int counter = 0;
   for (auto file_tmp : file_lists) {
@@ -131,8 +134,8 @@ int main(int argc, char** argv) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr icp_cloud(
         new pcl::PointCloud<pcl::PointXYZI>);
     icp.align(*icp_cloud);
-    std::cout << "Applied " << 100 << " ICP iterations in " << time.toc()
-              << " ms" << std::endl;
+    std::cout << "Applied " << 1000 << " ICP iterations in "
+              << ((double)time.toc())/1000.0 << " s" << std::endl;
     std::cout << "\nICP has converged, score is " << icp.getFitnessScore()
               << std::endl;
     Eigen::Matrix4f transform_icp = icp.getFinalTransformation();
