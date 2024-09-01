@@ -3,9 +3,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgcodecs/legacy/constants_c.h>
 
 // feature extraction
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   if (argc != 3) {
     std::cerr << "usage: neeed 2 images" << std::endl;
     return 1;
@@ -15,7 +16,7 @@ int main(int argc, char** argv) {
   cv::Mat img_2 = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR);
 
   // 2. find Oriented FAST keypoints
-  std::vector<cv::KeyPoint> kpts1, kpts2;  // 角点
+  std::vector<cv::KeyPoint> kpts1, kpts2; // 角点
   cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
   detector->detect(img_1, kpts1);
   detector->detect(img_2, kpts2);
@@ -47,12 +48,12 @@ int main(int argc, char** argv) {
   // 6. filter useful matched points
   double min_dist = 10000, max_dist = 0;
   min_dist = min_element(matches.begin(), matches.end(),
-                         [](const cv::DMatch& m1, const cv::DMatch& m2) {
+                         [](const cv::DMatch &m1, const cv::DMatch &m2) {
                            return m1.distance < m2.distance;
                          })
                  ->distance;
   max_dist = max_element(matches.begin(), matches.end(),
-                         [](const cv::DMatch& m1, const cv::DMatch& m2) {
+                         [](const cv::DMatch &m1, const cv::DMatch &m2) {
                            return m1.distance < m2.distance;
                          })
                  ->distance;
