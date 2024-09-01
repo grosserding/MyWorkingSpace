@@ -101,20 +101,20 @@ int main(int argc, char** argv) {
   // icp.setRANSACOutlierRejectionThreshold(1);
 
   Eigen::Matrix4f transform;
-  transform << 0.327047, 0.945007, -0.00156826, 1256.83, -0.944603, 0.326955,
-      0.0287198, -663.975, 0.0276532, -0.00791133, 0.999586, 7.13583, 0, 0, 0,
-      1;
-  Eigen::Matrix4f tmp;
-  tmp << 0.999986, 0.00146414, -0.00704568, -2.19362, -0.00146145, 1,
-      0.00221907, 0.710451, 0.00705069, -0.00220843, 0.999978, -10.3656, 0, 0,
-      0, 1;
+  transform <<     0.588956 ,   0.808077,  -0.0119553   ,   1121.1,
+  -0.807667 ,   0.589048 ,  0.0263928  ,  -711.609,
+  0.0283697,-0.00588826  ,   0.99958  ,   7.09358,
+          0   ,        0     ,      0   ,        1;
+  Eigen::Matrix4f tmp = Eigen::Matrix4f::Identity();
+  // tmp(0, 3) = -1.6;
+  // tmp(1, 3) = -0.6;
   transform = tmp * transform;
   double cropbox_delta = 250.0;
   int counter = 0;
   pcl::PointCloud<pcl::PointXYZI>::Ptr dynamic_part(
       new pcl::PointCloud<pcl::PointXYZI>);
   for (auto file_tmp : file_lists) {
-    // if ((counter++) % 5 != 0) continue;
+    if ((counter++) % 2 != 0) continue;
     std::cout << "************** loop head **************" << std::endl;
     size_t pos = file_tmp.find_last_of("/");
     std::string pure_filename = file_tmp.substr(pos + 1);
@@ -183,11 +183,12 @@ int main(int argc, char** argv) {
     // se3_transform = se3_icp * se3_transform;
     std::cout << "transform before = \n" << transform << std::endl;
     transform = transform_icp * transform;
-    std::cout << "transform after = \n" << transform << std::endl;
+    // std::cout << "transform after = \n" << transform << std::endl;
     Eigen::Quaternionf quat(transform.block<3, 3>(0, 0));
     quat.normalize();
     transform.block<3, 3>(0, 0) = quat.toRotationMatrix();
-    std::cout << "transform after normalize = \n" << transform << std::endl;
+    std::cout << "FINAL TRANSFORM OF STAMP " << pure_filename << " = \n"
+              << transform << std::endl;
 
     pcl::transformPointCloud(*self_made, *self_made, transform_icp);
     pcl::io::savePCDFileBinary(
