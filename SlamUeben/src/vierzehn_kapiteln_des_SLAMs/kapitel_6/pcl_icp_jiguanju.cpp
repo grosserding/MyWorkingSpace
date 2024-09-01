@@ -98,14 +98,14 @@ int main(int argc, char** argv) {
 
   Eigen::Matrix4f transform;
   transform << 
-   0.329214 ,   0.944246,  -0.0042703 ,     1907.7,
-  -0.943573 ,   0.329145 ,  0.0365108 ,   -438.885,
-  0.0358807, -0.00799053 ,   0.999324 ,    7.03776,
-          0  ,         0 ,          0  ,         1;
+ 0.310693  ,  0.950493 ,-0.00573101  ,   1746.95,
+  -0.950108 ,   0.310732,   0.0272202   , -495.292,
+  0.0276535, -0.00301207 ,   0.999613  ,   7.03507,
+          0   ,        0    ,       0     ,      1;
   Sophus::SE3f se3_transform(transform);
   int counter = 0;
   for (auto file_tmp : file_lists) {
-    if ((counter++) % 5 != 0) continue;
+    // if ((counter++) % 2 != 0) continue;
     std::cout << "************** loop head **************" << std::endl;
     size_t pos = file_tmp.find_last_of("/");
     std::string pure_filename = file_tmp.substr(pos + 1);
