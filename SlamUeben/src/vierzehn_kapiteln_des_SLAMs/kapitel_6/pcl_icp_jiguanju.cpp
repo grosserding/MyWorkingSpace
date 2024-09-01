@@ -2,6 +2,7 @@
 #define FMT_HEADER_ONLY
 #endif
 #include <pcl/console/time.h>  // 利用控制台计算时间
+#include <pcl/filters/crop_box.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>  // icp算法
@@ -86,31 +87,39 @@ int main(int argc, char** argv) {
 
   //--------------------初始化ICP对象--------------------
   pcl::IterativeClosestPoint<pcl::PointXYZI, pcl::PointXYZI> icp;
-  icp.setInputTarget(huace_cloud);      // 目标点云
+  // icp.setInputTarget(huace_cloud);      // 目标点云
+  // icp.setCorrespondenceRandomness(20);
   icp.setTransformationEpsilon(1e-10);  // 为终止条件设置最小转换差异
   icp.setMaxCorrespondenceDistance(
       10);  // 设置对应点对之间的最大距离（此值对配准结果影响较大）。
   icp.setEuclideanFitnessEpsilon(
       0.0001);  // 设置收敛条件是均方误差和小于阈值， 停止迭代；
-  icp.setMaximumIterations(1000);              // 最大迭代次数
+  icp.setMaximumIterations(1000);  // 最大迭代次数
   icp.setUseReciprocalCorrespondences(true);  //设置为true,则使用相互对应关系
   // icp.setRANSACOutlierRejectionThreshold(0.1);
+  // icp.setRANSACIterations(5);
+  // icp.setRANSACOutlierRejectionThreshold(1);
 
   Eigen::Matrix4f transform;
-  transform << 
- 0.310693  ,  0.950493 ,-0.00573101  ,   1746.95,
-  -0.950108 ,   0.310732,   0.0272202   , -495.292,
-  0.0276535, -0.00301207 ,   0.999613  ,   7.03507,
-          0   ,        0    ,       0     ,      1;
-  Sophus::SE3f se3_transform(transform);
+  transform << 0.327047, 0.945007, -0.00156826, 1256.83, -0.944603, 0.326955,
+      0.0287198, -663.975, 0.0276532, -0.00791133, 0.999586, 7.13583, 0, 0, 0,
+      1;
+  Eigen::Matrix4f tmp;
+  tmp << 0.999986, 0.00146414, -0.00704568, -2.19362, -0.00146145, 1,
+      0.00221907, 0.710451, 0.00705069, -0.00220843, 0.999978, -10.3656, 0, 0,
+      0, 1;
+  transform = tmp * transform;
+  double cropbox_delta = 250.0;
   int counter = 0;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr dynamic_part(
+      new pcl::PointCloud<pcl::PointXYZI>);
   for (auto file_tmp : file_lists) {
-    // if ((counter++) % 2 != 0) continue;
+    // if ((counter++) % 5 != 0) continue;
     std::cout << "************** loop head **************" << std::endl;
     size_t pos = file_tmp.find_last_of("/");
     std::string pure_filename = file_tmp.substr(pos + 1);
     std::cout << "now processing: " << pure_filename << std::endl;
-
+    time.tic();
     pcl::PointCloud<pcl::PointXYZI>::Ptr self_made(
         new pcl::PointCloud<pcl::PointXYZI>);
     pcl::io::loadPCDFile<pcl::PointXYZI>(file_tmp, *self_made);
@@ -118,9 +127,12 @@ int main(int argc, char** argv) {
     std::cout << "transform before orthogonalize = \n"
               << transform << std::endl;
     transform.block<3, 3>(0, 0) = orthogonalize(transform.block<3, 3>(0, 0));
+    Sophus::SE3f se3_transform(transform);
     std::cout << "transform after orthogonalize = \n" << transform << std::endl;
     pcl::transformPointCloud(*self_made, *self_made, transform);
-    std::cout << "self_made pc pre-transformed" << std::endl;
+    icp.setInputSource(self_made);  // 源点云
+    std::cout << "pre-process source and setInputSource used "
+              << time.toc() / 1000.0 << "s" << std::endl;
     // pcl::io::savePCDFileBinary(
     //     "/home/westwell/qpilot_dev_ws/QP_tasks/QP-17109/"
     //     "tmp" +
@@ -128,14 +140,40 @@ int main(int argc, char** argv) {
     //     *self_made);
 
     time.tic();
+    auto translation = se3_transform.translation();
+    pcl::CropBox<pcl::PointXYZI> crop_box;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr huace_cloud_filtered(
+        new pcl::PointCloud<pcl::PointXYZI>);
+    crop_box.setMin(Eigen::Vector4f(translation(0) - cropbox_delta,
+                                    translation(1) - cropbox_delta,
+                                    translation(2) - 100.0, 1));
+    crop_box.setMax(Eigen::Vector4f(translation(0) + cropbox_delta,
+                                    translation(1) + cropbox_delta,
+                                    translation(2) + 100.0, 1));
+    crop_box.setInputCloud(huace_cloud);
+    crop_box.filter(*huace_cloud_filtered);
+    // pcl::io::savePCDFileBinary(
+    //     "/home/westwell/qpilot_dev_ws/QP_tasks/QP-17109/"
+    //     "target_crop_tmp.pcd",
+    //     *huace_cloud_filtered);
+    std::cout << "before dynamic_part size = "
+              << huace_cloud_filtered->points.size() << std::endl;
+    *huace_cloud_filtered = *huace_cloud_filtered + *dynamic_part;
+    std::cout << "before dynamic_part size = "
+              << huace_cloud_filtered->points.size() << std::endl;
+
+    icp.setInputTarget(huace_cloud_filtered);  // 目标点云
+    std::cout << "pre-process target and setInputTarget used "
+              << time.toc() / 1000.0 << "s" << std::endl;
+    time.tic();
+
     //----------------------icp核心代码--------------------
-    icp.setInputSource(self_made);  // 源点云
     // 计算需要的刚体变换以便将输入的源点云匹配到目标点云
     pcl::PointCloud<pcl::PointXYZI>::Ptr icp_cloud(
         new pcl::PointCloud<pcl::PointXYZI>);
     icp.align(*icp_cloud);
     std::cout << "Applied " << 1000 << " ICP iterations in "
-              << ((double)time.toc())/1000.0 << " s" << std::endl;
+              << ((double)time.toc()) / 1000.0 << "s" << std::endl;
     std::cout << "\nICP has converged, score is " << icp.getFitnessScore()
               << std::endl;
     Eigen::Matrix4f transform_icp = icp.getFinalTransformation();
@@ -157,6 +195,7 @@ int main(int argc, char** argv) {
         "self_made_transformed/trans_" +
             pure_filename,
         *self_made);
+    *dynamic_part = *self_made;
   }
 
   return (0);
