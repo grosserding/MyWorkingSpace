@@ -12,6 +12,10 @@
 #include <sophus/common.hpp>
 #include <sophus/se3.hpp>
 
+// #include "impl/icp_omp.hpp"
+// #include "impl/correspondence_estimation_omp.hpp"
+#include "correspondence_estimation_omp.h"
+#include "icp_omp.h"
 // #include <boost/thread/thread.hpp>
 #include <iostream>
 
