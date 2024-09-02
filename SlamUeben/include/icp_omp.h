@@ -1,59 +1,50 @@
-#ifndef PCL_ICP_OMP_H_
-#define PCL_ICP_OMP_H_
+/* * Software License Agreement (BSD License)
+ * *  Point Cloud Library (PCL) - www.pointclouds.org
+ *  Copyright (c) 2010, Willow Garage, Inc.
+ *  Copyright (c) 2012-, Open Perception, Inc.
+ * *  All rights reserved.
+ * *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ * *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder(s) nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ * *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ * * $Id$
+ * */
+
+#pragma once
 
 // PCL includes
+// #include <pcl/memory.h>  // for dynamic_pointer_cast, pcl::make_shared, shared_ptr
+#include <pcl/registration/correspondence_estimation.h>
 #include <pcl/registration/default_convergence_criteria.h>
 #include <pcl/registration/icp.h>
 #include <pcl/registration/registration.h>
-#include <pcl/registration/transformation_estimation_2D.h>
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_registration.h>
+#include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+#include <pcl/registration/transformation_estimation_symmetric_point_to_plane_lls.h>
 
 #include "correspondence_estimation_omp.h"
 namespace pcl {
-/** \brief @b IterativeClosestPoint provides a base implementation of the
- * Iterative Closest Point algorithm. The transformation is estimated based on
- * Singular Value Decomposition (SVD).
- *
- * The algorithm has several termination criteria:
- *
- * <ol>
- * <li>Number of iterations has reached the maximum user imposed number of
- * iterations (via \ref setMaximumIterations)</li> <li>The epsilon (difference)
- * between the previous transformation and the current estimated transformation
- * is smaller than an user imposed value (via \ref
- * setTransformationEpsilon)</li> <li>The sum of Euclidean squared errors is
- * smaller than a user defined threshold (via \ref
- * setEuclideanFitnessEpsilon)</li>
- * </ol>
- *
- *
- * Usage example:
- * \code
- * IterativeClosestPoint<PointXYZ, PointXYZ> icp;
- * // Set the input source and target
- * icp.setInputCloud (cloud_source);
- * icp.setInputTarget (cloud_target);
- *
- * // Set the max correspondence distance to 5cm (e.g., correspondences with
- * higher distances will be ignored) icp.setMaxCorrespondenceDistance (0.05);
- * // Set the maximum number of iterations (criterion 1)
- * icp.setMaximumIterations (50);
- * // Set the transformation epsilon (criterion 2)
- * icp.setTransformationEpsilon (1e-8);
- * // Set the euclidean distance difference epsilon (criterion 3)
- * icp.setEuclideanFitnessEpsilon (1);
- *
- * // Perform the alignment
- * icp.align (cloud_source_registered);
- *
- * // Obtain the transformation that aligned cloud_source to
- * cloud_source_registered Eigen::Matrix4f transformation =
- * icp.getFinalTransformation (); \endcode
- *
- * \author Radu B. Rusu, Michael Dixon
- * \ingroup registration
- */
+
 template <typename PointSource, typename PointTarget, typename Scalar = float>
 class IterativeClosestPointOMP
     : public IterativeClosestPoint<PointSource, PointTarget, Scalar> {
@@ -80,27 +71,35 @@ class IterativeClosestPointOMP
       const IterativeClosestPointOMP<PointSource, PointTarget, Scalar> >
       ConstPtr;
   /** \brief Empty constructor. */
-  IterativeClosestPointOMP()
-      : IterativeClosestPoint<PointSource, PointTarget, Scalar>() {
-    reg_name_ = "IterativeClosestPointOMP";
-    transformation_estimation_.reset(
+  IterativeClosestPointOMP() {
+    this->reg_name_ = "IterativeClosestPointOMP";
+
+    this->transformation_estimation_.reset(
         new pcl::registration::TransformationEstimationSVD<
             PointSource, PointTarget, Scalar>());
-    correspondence_estimation_.reset(
-        new pcl::registration::CorrespondenceEstimationOMP<
+    this->correspondence_estimation_.reset(
+        new pcl::registration::CorrespondenceEstimationOMPT<
             PointSource, PointTarget, Scalar>);
-    convergence_criteria_.reset(
+    this->convergence_criteria_.reset(
         new pcl::registration::DefaultConvergenceCriteria<Scalar>(
-            nr_iterations_, transformation_, *correspondences_));
+            this->nr_iterations_, this->transformation_,
+            *this->correspondences_));
+
+    /*
+       transformation_estimation_.reset(new
+       pcl::registration::TransformationEstimationSVD<PointSource, PointTarget,
+       Scalar>()); correspondence_estimation_.reset(new
+       pcl::registration::CorrespondenceEstimationOMP<PointSource, PointTarget,
+       Scalar>); convergence_criteria_.reset(new
+       pcl::registration::DefaultConvergenceCriteria<Scalar>(nr_iterations_,
+       transformation_, *correspondences_));*/
   };
 
   /** \brief Empty destructor */
   virtual ~IterativeClosestPointOMP() {}
 
-  double getFitnessScore(const PointCloudSourceConstPtr& cloud,
-                         double max_range = std::numeric_limits<double>::max());
+  // double getFitnessScore(const PointCloudSourceConstPtr& cloud,
+  //    double max_range = std::numeric_limits<double>::max());
 };
-}  // namespace pcl
 
-#include "impl/icp_omp.hpp"
-#endif  //#ifndef PCL_ICP_2D_OMP_H_
+}  // namespace pcl

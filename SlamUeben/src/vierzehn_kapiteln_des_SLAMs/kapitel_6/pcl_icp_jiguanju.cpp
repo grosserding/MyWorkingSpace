@@ -52,6 +52,16 @@ std::vector<std::string> listFilesInDirectory(
 }
 
 int main(int argc, char** argv) {
+  // -------------------添加OpenMP内容 ---------------------
+  pcl::registration::CorrespondenceEstimationOMPT<pcl::PointXYZI,
+                                                 pcl::PointXYZI>::Ptr
+      correspondence_estimation(
+          new pcl::registration::CorrespondenceEstimationOMPT<pcl::PointXYZI,
+                                                             pcl::PointXYZI>());
+  pcl::IterativeClosestPointOMP<pcl::PointXYZI, pcl::PointXYZI>::Ptr icp(
+      new pcl::IterativeClosestPointOMP<pcl::PointXYZI, pcl::PointXYZI>());
+  icp->setCorrespondenceEstimation(correspondence_estimation);
+
   // -------------------获取自制点云文件----------------------
   std::string path =
       "/home/westwell/qpilot_dev_ws/QP_tasks/QP-17109/self_made_pcds";
@@ -90,19 +100,19 @@ int main(int argc, char** argv) {
   cout << "merged huace pc has " << huace_cloud->size() << " points" << endl;
 
   //--------------------初始化ICP对象--------------------
-  pcl::IterativeClosestPoint<pcl::PointXYZI, pcl::PointXYZI> icp;
-  // icp.setInputTarget(huace_cloud);      // 目标点云
-  // icp.setCorrespondenceRandomness(20);
-  icp.setTransformationEpsilon(1e-10);  // 为终止条件设置最小转换差异
-  icp.setMaxCorrespondenceDistance(
+  // pcl::IterativeClosestPoint<pcl::PointXYZI, pcl::PointXYZI> icp;
+  // icp->setInputTarget(huace_cloud);      // 目标点云
+  // icp->setCorrespondenceRandomness(20);
+  icp->setTransformationEpsilon(1e-10);  // 为终止条件设置最小转换差异
+  icp->setMaxCorrespondenceDistance(
       10);  // 设置对应点对之间的最大距离（此值对配准结果影响较大）。
-  icp.setEuclideanFitnessEpsilon(
+  icp->setEuclideanFitnessEpsilon(
       0.0001);  // 设置收敛条件是均方误差和小于阈值， 停止迭代；
-  icp.setMaximumIterations(1000);  // 最大迭代次数
-  icp.setUseReciprocalCorrespondences(true);  //设置为true,则使用相互对应关系
-  // icp.setRANSACOutlierRejectionThreshold(0.1);
-  // icp.setRANSACIterations(5);
-  // icp.setRANSACOutlierRejectionThreshold(1);
+  icp->setMaximumIterations(1000);  // 最大迭代次数
+  icp->setUseReciprocalCorrespondences(true);  //设置为true,则使用相互对应关系
+  // icp->setRANSACOutlierRejectionThreshold(0.1);
+  // icp->setRANSACIterations(5);
+  // icp->setRANSACOutlierRejectionThreshold(1);
 
   Eigen::Matrix4f transform;
   transform <<    0.99967, -0.00821244 , -0.0243471  ,      1115,
@@ -134,7 +144,7 @@ int main(int argc, char** argv) {
     Sophus::SE3f se3_transform(transform);
     std::cout << "transform after orthogonalize = \n" << transform << std::endl;
     pcl::transformPointCloud(*self_made, *self_made, transform);
-    icp.setInputSource(self_made);  // 源点云
+    icp->setInputSource(self_made);  // 源点云
     std::cout << "pre-process source and setInputSource used "
               << time.toc() / 1000.0 << "s" << std::endl;
     // pcl::io::savePCDFileBinary(
@@ -166,7 +176,7 @@ int main(int argc, char** argv) {
     std::cout << "before dynamic_part size = "
               << huace_cloud_filtered->points.size() << std::endl;
 
-    icp.setInputTarget(huace_cloud_filtered);  // 目标点云
+    icp->setInputTarget(huace_cloud_filtered);  // 目标点云
     std::cout << "pre-process target and setInputTarget used "
               << time.toc() / 1000.0 << "s" << std::endl;
     time.tic();
@@ -175,12 +185,12 @@ int main(int argc, char** argv) {
     // 计算需要的刚体变换以便将输入的源点云匹配到目标点云
     pcl::PointCloud<pcl::PointXYZI>::Ptr icp_cloud(
         new pcl::PointCloud<pcl::PointXYZI>);
-    icp.align(*icp_cloud);
+    icp->align(*icp_cloud);
     std::cout << "Applied " << 1000 << " ICP iterations in "
               << ((double)time.toc()) / 1000.0 << "s" << std::endl;
-    std::cout << "\nICP has converged, score is " << icp.getFitnessScore()
+    std::cout << "\nICP has converged, score is " << icp->getFitnessScore()
               << std::endl;
-    Eigen::Matrix4f transform_icp = icp.getFinalTransformation();
+    Eigen::Matrix4f transform_icp = icp->getFinalTransformation();
     // Sophus::SE3f se3_icp(transform_icp);
     std::cout << "se3_icp at " << pure_filename << " is: \n"
               << transform_icp << std::endl;

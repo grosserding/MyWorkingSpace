@@ -14,9 +14,11 @@ find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(G2O REQUIRED)
+find_package(OpenMP REQUIRED)
 include_directories(
   include 
   /usr/include/eigen3
+  ${OpenMP_INCLUDE_DIRS}
   ${Sophus_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
@@ -24,6 +26,11 @@ include_directories(
   ${G2O_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   )
+
+if (OPENMP_FOUND)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 # link_libraries(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -56,6 +63,6 @@ add_executable(pcl_icp_jiguanju src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_ic
 # target_link_libraries(calcTransform ${OpenCV_LIBS} ${CERES_LIBRARIES} ${Sophus_LIBS})
 # target_link_libraries(14Kap_6_4 ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${G2O_STUFF_LIBRARY})
 # target_link_libraries(pcl_icp ${PCL_LIBRARIES} ${Boost_LIBRARIES})
-target_link_libraries(pcl_icp_jiguanju ${PCL_LIBRARIES} ${Boost_LIBRARIES} ${Sophus_LIBS})
+target_link_libraries(pcl_icp_jiguanju ${OpenMP_LIBS} ${PCL_LIBRARIES} ${Boost_LIBRARIES} ${Sophus_LIBS})
 # target_link_libraries(14Kap_7_2_extract_feature ${OpenCV_LIBS})
 # target_link_libraries(14Kap_7_4_pose_estimation_2d2d ${OpenCV_LIBS})
