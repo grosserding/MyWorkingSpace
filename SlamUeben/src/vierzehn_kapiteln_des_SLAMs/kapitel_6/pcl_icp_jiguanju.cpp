@@ -101,20 +101,20 @@ int main(int argc, char** argv) {
   // icp.setRANSACOutlierRejectionThreshold(1);
 
   Eigen::Matrix4f transform;
-  transform <<     0.588956 ,   0.808077,  -0.0119553   ,   1121.1,
-  -0.807667 ,   0.589048 ,  0.0263928  ,  -711.609,
-  0.0283697,-0.00588826  ,   0.99958  ,   7.09358,
-          0   ,        0     ,      0   ,        1;
+  transform <<    0.99967, -0.00821244 , -0.0243471  ,      1115,
+ 0.00840709 ,   0.999933 , 0.00790301  ,  -802.524,
+  0.0242806 ,-0.00810509  ,  0.999672  ,   7.08165,
+          0  ,         0  ,         0   ,        1;
   Eigen::Matrix4f tmp = Eigen::Matrix4f::Identity();
-  // tmp(0, 3) = -1.6;
-  // tmp(1, 3) = -0.6;
+  tmp(0, 3) = 0.150;
+  tmp(1, 3) = -0.562;
   transform = tmp * transform;
   double cropbox_delta = 250.0;
   int counter = 0;
   pcl::PointCloud<pcl::PointXYZI>::Ptr dynamic_part(
       new pcl::PointCloud<pcl::PointXYZI>);
   for (auto file_tmp : file_lists) {
-    if ((counter++) % 2 != 0) continue;
+    // if ((counter++) % 2 != 0) continue;
     std::cout << "************** loop head **************" << std::endl;
     size_t pos = file_tmp.find_last_of("/");
     std::string pure_filename = file_tmp.substr(pos + 1);
