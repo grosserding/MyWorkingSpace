@@ -4,21 +4,21 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-cv::Point2d pixel2cam(const cv::Point2d& p, const cv::Mat& K) {
+cv::Point2d pixel2cam(const cv::Point2d &p, const cv::Mat &K) {
   return cv::Point2d((p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
                      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1));
 }
 
-void find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2,
-                          std::vector<cv::KeyPoint>& keypoints_1,
-                          std::vector<cv::KeyPoint>& keypoints_2,
-                          std::vector<cv::DMatch>& good_matches) {
+void find_feature_matches(const cv::Mat &img_1, const cv::Mat &img_2,
+                          std::vector<cv::KeyPoint> &keypoints_1,
+                          std::vector<cv::KeyPoint> &keypoints_2,
+                          std::vector<cv::DMatch> &good_matches) {
   // 2. find Oriented FAST keypoints
   cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
   detector->detect(img_1, keypoints_1);
   detector->detect(img_2, keypoints_2);
-  std::cerr << "found " << keypoints_1.size() << "keypoints_1, "
-            << keypoints_2.size() << "keypoints_2." << std::endl;
+  std::cerr << "found " << keypoints_1.size() << " keypoints_1, "
+            << keypoints_2.size() << " keypoints_2." << std::endl;
 
   // 3. calculate BRIEF descriptor
   cv::Ptr<cv::DescriptorExtractor> descriptor = cv::ORB::create();
@@ -38,16 +38,16 @@ void find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2,
       cv::DescriptorMatcher::create("BruteForce-Hamming");
   std::vector<cv::DMatch> matches;
   matcher->match(descriptors_1, descriptors_2, matches);
-
+  std::cerr << "matches size = " << matches.size() << std::endl;
   // 6. filter useful matched points
   double min_dist = 10000, max_dist = 0;
   min_dist = min_element(matches.begin(), matches.end(),
-                         [](const cv::DMatch& m1, const cv::DMatch& m2) {
+                         [](const cv::DMatch &m1, const cv::DMatch &m2) {
                            return m1.distance < m2.distance;
                          })
                  ->distance;
   max_dist = max_element(matches.begin(), matches.end(),
-                         [](const cv::DMatch& m1, const cv::DMatch& m2) {
+                         [](const cv::DMatch &m1, const cv::DMatch &m2) {
                            return m1.distance < m2.distance;
                          })
                  ->distance;
@@ -55,7 +55,8 @@ void find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2,
   printf("min_dist = %f\n", min_dist);
   // when discriptors distance larger than 2*min_dist, match is wrong
   for (auto match : matches) {
-    if (match.distance <= 2 * min_dist) {
+    std::cerr << "match.distance = " << match.distance << std::endl;
+    if (match.distance <= std::max((2 * min_dist), 30.0)) {
       good_matches.push_back(match);
     }
   }
@@ -63,8 +64,8 @@ void find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2,
 
 void pose_estimation_2d2d(std::vector<cv::KeyPoint> kpts_1,
                           std::vector<cv::KeyPoint> kpts_2,
-                          std::vector<cv::DMatch> matches, cv::Mat& R,
-                          cv::Mat& t) {
+                          std::vector<cv::DMatch> matches, cv::Mat &R,
+                          cv::Mat &t) {
   // 相机内参，其中cv::Mat_为模板类，可以定义数据类型和尺寸
   cv::Mat K =
       ((cv::Mat_<double>(3, 3) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1));
@@ -79,13 +80,13 @@ void pose_estimation_2d2d(std::vector<cv::KeyPoint> kpts_1,
   // calculate E, EssentialMatrix 本质矩阵, E = t^R,
   // 八点法求本质矩阵，不包含内参
   cv::Mat eMat;
-  cv::Point2d principal_point(325.1, 249.7);  // 相机光心（内参标定值）
-  double focal_length = 521;  // 相机焦距（内参标定值）
+  cv::Point2d principal_point(325.1, 249.7); // 相机光心（内参标定值）
+  double focal_length = 521; // 相机焦距（内参标定值）
   eMat = cv::findEssentialMat(points1, points2, focal_length, principal_point);
   std::cout << "essential matrix is \n" << eMat << std::endl;
   // calculate F, FundamentalMatrix 基础矩阵, F = K^(-T) E K^(-1)
   cv::Mat fMat;
-  fMat = cv::findFundamentalMat(points1, points2, CV_FM_8POINT);
+  fMat = cv::findFundamentalMat(points1, points2);
   std::cout << "fundamental matrix is \n" << fMat << std::endl;
 
   // get pose from essential matrix or fundamental matrix
@@ -95,13 +96,13 @@ void pose_estimation_2d2d(std::vector<cv::KeyPoint> kpts_1,
 }
 
 // 2d-2d estimate camera movements
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   if (argc != 3) {
     std::cout << "need two parameter: pic 1 file path and pic 2 file path.\n";
     return 1;
   }
-  cv::Mat img_1 = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
-  cv::Mat img_2 = cv::imread(argv[2], CV_LOAD_IMAGE_COLOR);
+  cv::Mat img_1 = cv::imread(argv[1]);
+  cv::Mat img_2 = cv::imread(argv[2]);
   assert(img_1.data && img_2.data && "cant load imgs");
   std::cout << "images loaded.\n";
   std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
@@ -111,7 +112,6 @@ int main(int argc, char** argv) {
 
   cv::Mat R, t;
   pose_estimation_2d2d(keypoints_1, keypoints_2, matches, R, t);
-
 
   return 0;
 }
