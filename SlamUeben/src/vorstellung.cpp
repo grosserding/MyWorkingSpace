@@ -2,14 +2,14 @@
 #include <vector>
 // #include <cstdlib> // 生成随机数的库，包含rand() srand()
 // #include <ctime> // 包含time()函数
-#include <algorithm>  // sort()
+#include <algorithm> // sort()
 #include <random>
 #include <string>
 #include <typeinfo>
 
 //##1. zweite suchen
 // standard loesung, 给一个值，如果查到返回idx，如果找不到，返回-1并插入。
-int Search(std::vector<double>& list, double goal) {
+int Search(std::vector<double> &list, double goal) {
   int right = list.size() - 1, left = 0;
   while (left <= right) {
     int mid = left + (right - left) / 2;
@@ -17,16 +17,22 @@ int Search(std::vector<double>& list, double goal) {
       return mid;
     }
     if (list[mid] < goal) {
-      left = mid + 1;
+      left = mid + 1; // 小的+1大的-1,才能做到最后left > right
     } else {
       right = mid - 1;
     }
   }
-  list.insert(list.begin() + left, goal);
+  std::cout << "list[left] = " << list[left] << std::endl;
+  std::cout << "goal = " << goal << std::endl;
+  std::cout << "list[right] = " << list[right] << std::endl;
+  list.insert(
+      list.begin() + left,
+      goal); // 最后是在left的地方插入，说明list[left]是比goal要大的，也就是最后达到的效果是
+             // list[right] < goal < list[left]!本来在右边的right已经跑到左边了
   return -1;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   std::cout << "# Allgemaine Fragen" << std::endl;
   //# Allgemaine Fragen
   {
