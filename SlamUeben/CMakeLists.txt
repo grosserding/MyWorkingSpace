@@ -45,6 +45,7 @@ add_executable(pcl_icp src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_icp.cpp)
 add_executable(pcl_icp_jiguanju src/vierzehn_kapiteln_des_SLAMs/kapitel_6/pcl_icp_jiguanju.cpp)
 add_executable(14Kap_7_2_extract_feature src/vierzehn_kapiteln_des_SLAMs/kap_7/7.2.cpp)
 add_executable(14Kap_7_4_pose_estimation_2d2d src/vierzehn_kapiteln_des_SLAMs/kap_7/7.4.cpp)
+add_executable(vorstellung src/vorstellung.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
