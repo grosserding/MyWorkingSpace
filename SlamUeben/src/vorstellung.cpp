@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   //# Allgemaine Fragen
   {
     //##1. zweite suchen
-    std::cout << "## zweite suchen." << std::endl;
+    std::cout << "## zweite suchen" << std::endl;
     std::vector<double> list;
     std::random_device rd;
     for (int i = 0; i < 100; i++) {
@@ -135,8 +135,51 @@ int main(int argc, char **argv) {
   }
 
   {
-    //## zweite suchen
-    std::cout << "## zweite suchen." << std::endl;
+    //## alles sortieren(permutation)
+    std::cout << "## permutation" << std::endl;
+    // normal data
+    std::vector<double> list;
+    std::random_device rd;
+    for (int i = 0; i < 3; i++) {
+      list.emplace_back(rd() / (int)1000 / (double)1000);
+    }
+    std::sort(list.begin(), list.end());
+    int counter = 0;
+    do {
+      std::cout << ++counter << ": ";
+      for (auto tmp : list) {
+        std::cout << tmp << ", ";
+      }
+      std::cout << std::endl;
+    } while (next_permutation(list.begin(), list.end()));
+
+    std::cout << "### permutation for structed data" << std::endl;
+    // special data struct
+    struct dataset {
+      dataset(double a) { data = a; }
+      double data;
+    };
+    std::vector<dataset> data_list;
+    for (int i = 0; i < 4; i++) {
+      data_list.emplace_back(dataset(rd() / (int)1000 / (double)1000));
+    }
+    std::sort(data_list.begin(), data_list.end(),
+              [](dataset a, dataset b) -> bool { return (a.data < b.data); });
+    counter = 0;
+    do {
+      std::cout << ++counter << ": ";
+      for (auto tmp : data_list) {
+        std::cout << tmp.data << ", ";
+      }
+      std::cout << std::endl;
+    } while (next_permutation(
+        data_list.begin(), data_list.end(),
+        [](dataset a, dataset b) -> bool { return a.data < b.data; }));
+  }
+
+  {
+    //## alles sortieren(permutation)
+    std::cout << "## permutation" << std::endl;
   }
   return 0;
 }
