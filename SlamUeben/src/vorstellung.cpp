@@ -178,8 +178,48 @@ int main(int argc, char **argv) {
   }
 
   {
-    //## alles sortieren(permutation)
-    std::cout << "## permutation" << std::endl;
+    //## newton for solving equations->f(x) = 0
+    // sqrt bedeutet x^2 - b = 0
+    // kern equation: x_{k+1} = x_k - f(x_k) / f'(x_k)
+    std::cout << "## newton for solving equations" << std::endl;
+    std::random_device rd;
+    double a = (double)rd() / 1e6;
+    std::cout << "a = " << a << std::endl;
+    double sqrta = sqrt(a);
+    std::cout << "sqrt(a) = " << sqrta << ", "
+              << "sqrta^2 = " << sqrta * sqrta << std::endl;
+    double x0 = 0;
+    double x1 = 1;
+    int counter = 0;
+    do {
+      counter++;
+      x0 = x1;
+      x1 = x0 - (x0 * x0 - a) / (2 * x0);
+    } while (abs(x1 * x1 - a) > 0.00001);
+    std::cout << ", x1 = " << x1 << ", x1^2 = " << x1 * x1
+              << ", counter = " << counter << std::endl;
+  }
+  double a = 1, b = 2, c = 3;
+  std::vector<double> x_list;
+  std::vector<double> y_list;
+  for(int i = -10; i < 10; i+=0.2) {
+    x_list.emplace_back(i);
+    y_list.emplace_back(a*i*i + b * i + c + )
+  }
+  {
+    //## 1-grad for optimization-> min ||fx||^2
+    std::cout << "## 1-grad for optimization-> min ||fx||^2" << std::endl;
+    // dx = -J
+  }
+  {
+    //## 2-grad for optimization-> min ||fx||^2 (Newton)
+    std::cout << "/## 2-grad for optimization-> min ||fx||^2 (Newton)"
+              << std::endl;
+    // Z.B. newton solve y = a*x^2 + b*x + c
+  }
+  {
+    //## Gauss-Newton for optimization-> min ||fx||^2
+    std::cout << "## Gauss-Newton for optimization-> min ||fx||^2" << std::endl;
   }
   return 0;
 }
