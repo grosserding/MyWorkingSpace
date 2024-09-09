@@ -68,3 +68,5 @@ target_link_libraries(14Kap_7_4_pose_estimation_2d2d ${OpenCV_LIBS})
 target_link_libraries(14Kap_7_8_1_3d2d_EPnP ${OpenCV_LIBS})
 target_link_libraries(14Kap_7_8_2_3d2d_BA ${OpenCV_LIBS} ${G2O_CORE_LIBRARY}
                       ${G2O_STUFF_LIBRARY})
+target_link_libraries(vorstellung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
+                      ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
