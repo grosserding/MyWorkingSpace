@@ -41,6 +41,13 @@ int main(int argc, char **argv) {
   std::cout << "# Allgemaine Fragen" << std::endl;
   //# Allgemaine Fragen
   {
+    //## random value generation
+    // 1. std::random_device rd;
+    // 2. std::mt19937 gen(rd());
+    // 3. std::normal_distribution nd; or std::uniform_real_distribution ud;
+    // 4. nd(gen); or ud(gen);
+  }
+  {
     //##1. zweite suchen
     std::cout << "## zweite suchen" << std::endl;
     std::vector<double> list;
