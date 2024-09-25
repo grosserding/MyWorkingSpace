@@ -293,7 +293,7 @@ int main(int argc, char **argv) {
         std::cout << "solving got nan." << std::endl;
         break;
       }
-      if (counter > 100 && dx.norm() < 1e-6) {
+      if (dx.norm() < 1e-6) {
         std::cout << "dx under 1e-6, iteration ends." << std::endl;
         break;
       }
@@ -306,6 +306,53 @@ int main(int argc, char **argv) {
     std::cout << "a = " << a << ", b = " << b << ", c = " << c
               << "\nea = " << ea << ", eb = " << eb << ", ec = " << ec
               << std::endl;
-    // wrong, get all zero
   }
+  // gaussnewton self make again
+  {
+    // ax + by + cz + d = 0 -> z = Ax + By + C
+    // f(param) = Ax + By + C
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> ud(-100, 100);
+    std::normal_distribution<double> nd(0, 1);
+    std::vector<double> x_vec, y_vec, z_vec;
+    double A = 1, B = 2, C = 3;
+    for(int i = 0; i < 100; i++) {
+        double x = ud(gen);
+        double y = ud(gen);
+        double z = A * x + B * y + C + nd(gen);
+        x_vec.emplace_back(x);
+        y_vec.emplace_back(y);
+        z_vec.emplace_back(z);
+    }
+    double Ae = 0.1, Be = 0.1, Ce = 0.1;
+    // f = Z - (Ae x + Be y + Ce)
+    for(int counter = 0; counter < 1000; counter++) {
+        Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
+        Eigen::Vector3d g = Eigen::Vector3d::Zero();
+        for(int i = 0; i < x_vec.size(); i++) {
+            double x = x_vec[i], y = y_vec[i], z = z_vec[i];
+            Eigen::Vector3d J(-x, -y, -1);
+            H += J * J.transpose();
+            double error = z - (Ae * x + Be * y + Ce);
+            g += - J * error;
+        }
+        Eigen::Vector3d dx = H.ldlt().solve(g);
+        if(std::isnan(dx(0))) {
+            std::cout << "dx isnan, break." << std::endl;
+            break;
+        }
+        if(dx.norm() <= 1e-10) {
+            std::cout << "dx.norm <= 1e-10, break." << std::endl;
+            break;
+        }
+        Ae += dx(0);
+        Be += dx(1);
+        Ce += dx(2);
+        std::cout << "counter = " << counter << ", dx = " << dx.transpose()
+                  << ", Ae/Be/Ce = " << Ae << "/" << Be << "/" << Ce
+                  << std::endl;
+    }
+  }
+  return 1;
 }
