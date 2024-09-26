@@ -317,42 +317,120 @@ int main(int argc, char **argv) {
     std::normal_distribution<double> nd(0, 1);
     std::vector<double> x_vec, y_vec, z_vec;
     double A = 1, B = 2, C = 3;
-    for(int i = 0; i < 100; i++) {
-        double x = ud(gen);
-        double y = ud(gen);
-        double z = A * x + B * y + C + nd(gen);
-        x_vec.emplace_back(x);
-        y_vec.emplace_back(y);
-        z_vec.emplace_back(z);
+    for (int i = 0; i < 100; i++) {
+      double x = ud(gen);
+      double y = ud(gen);
+      double z = A * x + B * y + C + nd(gen);
+      x_vec.emplace_back(x);
+      y_vec.emplace_back(y);
+      z_vec.emplace_back(z);
     }
     double Ae = 0.1, Be = 0.1, Ce = 0.1;
     // f = Z - (Ae x + Be y + Ce)
-    for(int counter = 0; counter < 1000; counter++) {
-        Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
-        Eigen::Vector3d g = Eigen::Vector3d::Zero();
-        for(int i = 0; i < x_vec.size(); i++) {
-            double x = x_vec[i], y = y_vec[i], z = z_vec[i];
-            Eigen::Vector3d J(-x, -y, -1);
-            H += J * J.transpose();
-            double error = z - (Ae * x + Be * y + Ce);
-            g += - J * error;
-        }
-        Eigen::Vector3d dx = H.ldlt().solve(g);
-        if(std::isnan(dx(0))) {
-            std::cout << "dx isnan, break." << std::endl;
-            break;
-        }
-        if(dx.norm() <= 1e-10) {
-            std::cout << "dx.norm <= 1e-10, break." << std::endl;
-            break;
-        }
-        Ae += dx(0);
-        Be += dx(1);
-        Ce += dx(2);
-        std::cout << "counter = " << counter << ", dx = " << dx.transpose()
-                  << ", Ae/Be/Ce = " << Ae << "/" << Be << "/" << Ce
-                  << std::endl;
+    for (int counter = 0; counter < 1000; counter++) {
+      Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
+      Eigen::Vector3d g = Eigen::Vector3d::Zero();
+      for (int i = 0; i < x_vec.size(); i++) {
+        double x = x_vec[i], y = y_vec[i], z = z_vec[i];
+        Eigen::Vector3d J(-x, -y, -1);
+        H += J * J.transpose();
+        double error = z - (Ae * x + Be * y + Ce);
+        g += -J * error;
+      }
+      Eigen::Vector3d dx = H.ldlt().solve(g);
+      if (std::isnan(dx(0))) {
+        std::cout << "dx isnan, break." << std::endl;
+        break;
+      }
+      if (dx.norm() <= 1e-10) {
+        std::cout << "dx.norm <= 1e-10, break." << std::endl;
+        break;
+      }
+      Ae += dx(0);
+      Be += dx(1);
+      Ce += dx(2);
+      std::cout << "counter = " << counter << ", dx = " << dx.transpose()
+                << ", Ae/Be/Ce = " << Ae << "/" << Be << "/" << Ce << std::endl;
     }
+  }
+  {
+    // 1-grad least square for fitting lanes
+    std::vector<double> xs, ys;
+    double a = 1.0, b = 2.0;
+    double ae = 0.1, be = 0.1;
+    int points_num = 100;
+    xs.reserve(points_num);
+    ys.reserve(points_num);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> ud(-100, 100);
+    std::normal_distribution<double> nd(0, 1);
+    for (int i = 0; i < points_num; i++) {
+      double x = ud(gen);
+      double y = a * x + b + nd(gen);
+      xs.emplace_back(x);
+      ys.emplace_back(y);
+    }
+    // f(x) = y - (Ax + B) F(x) = ||f(x)||2
+    // J 为 F(x) 对 A、B求偏导，得到J(0),J(1)
+    // Grad = 0 时，表示可以直接解出A,B
+    // J(0) = -2*(y - Ax - B)*x = 0, J(1) = -2*(y - Ax - B) = 0
+    // -x^2 * A - x * B + xy = 0
+    // -x * A - B + y = 0
+    // 转化成矩阵方程求解 Hx = g，这样就不再存在迭代
+    Eigen::Matrix2d H = Eigen::Matrix2d::Zero();
+    Eigen::Vector2d g = Eigen::Vector2d::Zero();
+    for (int i = 0; i < xs.size(); i++) {
+      double x = xs[i];
+      double y = ys[i];
+      Eigen::Matrix2d H_plus;
+      Eigen::Vector2d g_plus;
+      H_plus << x * x, x, x, 1;
+      g_plus << x * y, y;
+      H += H_plus;
+      g += g_plus;
+    }
+    Eigen::Vector2d res = H.ldlt().solve(g);
+    std::cout << "res = " << res.transpose() << std::endl;
+  }
+  {
+    // not using gaussnewton least sqaure fitting plane
+    // z = ax + by + c
+    // f(x, y) = z - ax - by - c
+    // F = (z - ax - by - c)^2
+    // J0 = 2 * (z - ax - by - c) (-x) = 0
+    // J1 = 2 * (z - ax - by - c) (-y) = 0
+    // J2 = 2 * (z - ax - by - c) (-1) = 0
+    // HX = B
+    std::vector<double> xs, ys, zs;
+    double a = 1, b = 2, c = 3;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> ud(-100, 100);
+    std::normal_distribution<double> nd(0, 1);
+    for(int i = 0; i < 100; i++) {
+      double x = ud(gen);
+      double y = ud(gen);
+      double z = a * x + b * y + c + nd(gen);
+      xs.emplace_back(x);
+      ys.emplace_back(y);
+      zs.emplace_back(z);
+    }
+    Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
+    Eigen::Vector3d G = Eigen::Vector3d::Zero();
+    for(int i = 0; i < xs.size(); i++) {
+      double x = xs[i];
+      double y = ys[i];
+      double z = zs[i];
+      Eigen::Matrix3d H_plus;
+      Eigen::Vector3d G_plus;
+      H_plus << x*x, x*y, x, x*y, y*y, y, x, y, 1;
+      G_plus << z*x, z*y, z;
+      H += H_plus;
+      G += G_plus;
+    }
+    Eigen::Vector3d params = H.ldlt().solve(G);
+    std::cout << "params = " << params.transpose() << std::endl;
   }
   return 1;
 }
