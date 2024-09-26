@@ -2,8 +2,10 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/SVD>
 #include <iostream>
 #include <random>
+#include <chrono>
 int ZweiteSuchen(std::vector<double> &nums, const double &obj) {
   int left = 0, right = nums.size() - 1;
   while (left <= right) {
@@ -429,8 +431,43 @@ int main(int argc, char **argv) {
       H += H_plus;
       G += G_plus;
     }
-    Eigen::Vector3d params = H.ldlt().solve(G);
-    std::cout << "params = " << params.transpose() << std::endl;
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    Eigen::Vector3d params1 = H.lu().solve(G);
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    Eigen::Vector3d params2 = H.llt().solve(G);
+    std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
+    Eigen::Vector3d params3 = H.ldlt().solve(G);
+    std::chrono::steady_clock::time_point t4 = std::chrono::steady_clock::now();
+    Eigen::Vector3d params4 = H.colPivHouseholderQr().solve(G);
+    std::chrono::steady_clock::time_point t5 = std::chrono::steady_clock::now();
+    Eigen::Vector3d params5 =
+        H.bdcSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(G);
+    std::chrono::steady_clock::time_point t6 = std::chrono::steady_clock::now();
+    std::cout << "params1 = " << params1.transpose() << ", takes "
+              << std::chrono::duration_cast<std::chrono::duration<double>>(t2 -
+                                                                           t1)
+                     .count()
+              << std::endl;
+    std::cout << "params2 = " << params2.transpose() << ", takes "
+              << std::chrono::duration_cast<std::chrono::duration<double>>(t3 -
+                                                                           t2)
+                     .count()
+              << std::endl;
+    std::cout << "params3 = " << params3.transpose() << ", takes "
+              << std::chrono::duration_cast<std::chrono::duration<double>>(t4 -
+                                                                           t3)
+                     .count()
+              << std::endl;
+    std::cout << "params4 = " << params4.transpose() << ", takes "
+              << std::chrono::duration_cast<std::chrono::duration<double>>(t5 -
+                                                                           t4)
+                     .count()
+              << std::endl;
+    std::cout << "params5 = " << params5.transpose() << ", takes "
+              << std::chrono::duration_cast<std::chrono::duration<double>>(t6 -
+                                                                           t5)
+                     .count()
+              << std::endl;
   }
   return 1;
 }
