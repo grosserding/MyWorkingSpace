@@ -2,6 +2,8 @@
 #include <vector>
 // #include <cstdlib> // 生成随机数的库，包含rand() srand()
 // #include <ctime> // 包含time()函数
+#include <ceres/ceres.h>
+
 #include <algorithm>  // sort()
 #include <chrono>
 #include <eigen3/Eigen/Core>
@@ -37,17 +39,27 @@ int Search(std::vector<double> &list, double goal) {
   return -1;
 }
 
+struct PLANE_FITTING_COST {
+  PLANE_FITTING_COST(double x, double y, double z) : _x(x), _y(y), _z(z) {}
+
+  template <typename T>
+  bool operator()(const T *abc, T *residual) const {
+    residual[0] = _z - (abc[0] * _x + abc[1] * _y + abc[2]);
+    return true;
+  }
+  const double _x, _y, _z;
+};
+
 int main(int argc, char **argv) {
   std::cout << "# Allgemaine Fragen" << std::endl;
   //# Allgemaine Fragen
   {
-    //## random value generation
-    // 1. std::random_device rd;
-    // 2. std::mt19937 gen(rd());
-    // 3. std::normal_distribution nd; or std::uniform_real_distribution ud;
-    // 4. nd(gen); or ud(gen);
-  }
-  {
+      //## random value generation
+      // 1. std::random_device rd;
+      // 2. std::mt19937 gen(rd());
+      // 3. std::normal_distribution nd; or std::uniform_real_distribution ud;
+      // 4. nd(gen); or ud(gen);
+  } {
     //##1. zweite suchen
     std::cout << "## zweite suchen" << std::endl;
     std::vector<double> list;
@@ -233,7 +245,8 @@ int main(int argc, char **argv) {
               << std::endl;
   }
   {
-    //## Handmade Gauss-Newton for optimization: f(x+dx) = f(x) + J(x)dx, Fx = f(x+dx)T
+    //## Handmade Gauss-Newton for optimization: f(x+dx) = f(x) + J(x)dx, Fx =
+    //f(x+dx)T
     // f(x+dx)
     // Jx JxT dx = - Jx fx -> H dx = g
     // Eigen::Vector3d test = Eigen::Vector3d::Zero();
@@ -273,10 +286,10 @@ int main(int argc, char **argv) {
         break;
       }
       x_est += dx;
-    //   if (dx.norm() < 1e-10) {
-    //     satisfied = true;
-    //     break;
-    //   }
+      //   if (dx.norm() < 1e-10) {
+      //     satisfied = true;
+      //     break;
+      //   }
     }
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_mine =
@@ -314,10 +327,10 @@ int main(int argc, char **argv) {
         break;
       }
       x_est += dx;
-    //   if (dx.norm() < 1e-10) {
-    //     satisfied = true;
-    //     break;
-    //   }
+      //   if (dx.norm() < 1e-10) {
+      //     satisfied = true;
+      //     break;
+      //   }
     }
     t2 = std::chrono::steady_clock::now();
     time_mine =
@@ -326,7 +339,38 @@ int main(int argc, char **argv) {
               << ", x_est = " << x_est.transpose() << std::endl;
   }
   {
-    //## Handmade LM
+    // Ceres Fitting Plane
+    // plane is Z = ax + by + c
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> ud(-100, 100);
+    std::normal_distribution<double> nd(0, 1);
+    std::vector<double> x_vec, y_vec, z_vec;
+    double A = 1, B = 2, C = 3;
+    for (int i = 0; i < 100; i++) {
+      double x = ud(gen);
+      double y = ud(gen);
+      double z = A * x + B * y + C + nd(gen);
+      x_vec.emplace_back(x);
+      y_vec.emplace_back(y);
+      z_vec.emplace_back(z);
+    }
+    ceres::Problem problem;
+    double abc[3] = {-1, -1, -1};
+    for (int i = 0; i < x_vec.size(); i++) {
+      problem.AddResidualBlock(
+          new ceres::AutoDiffCostFunction<PLANE_FITTING_COST, 1, 3>(
+              new PLANE_FITTING_COST(x_vec[i], y_vec[i], z_vec[i])),
+          nullptr, abc);
+    }
+    ceres::Solver::Options options;
+    options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
+    options.minimizer_progress_to_stdout = true;
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+    std::cout << "summary:\n" << summary.BriefReport() << std::endl;
+    std::cout << "abc = " << abc[0] << ", " << abc[1] << ", " << abc[2]
+              << std::endl;
   }
   return 0;
 }

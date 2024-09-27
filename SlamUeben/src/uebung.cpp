@@ -1,3 +1,5 @@
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
 #include <algorithm>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -6,6 +8,10 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <sophus/so3.hpp>
+#include <sophus/so2.hpp>
+#include <sophus/se3.hpp>
+#include <sophus/se2.hpp>
 int ZweiteSuchen(std::vector<double> &nums, const double &obj) {
   int left = 0, right = nums.size() - 1;
   while (left <= right) {
@@ -396,7 +402,8 @@ int main(int argc, char **argv) {
     std::cout << "res = " << res.transpose() << std::endl;
   }
   {
-    // not using gaussnewton least sqaure fitting plane
+    // NOT using gaussnewton least sqaure fitting plane
+    // 思路是，让雅可比的各项等于0！然后直接求解析解，而不再迭代
     // z = ax + by + c
     // f(x, y) = z - ax - by - c
     // F = (z - ax - by - c)^2
@@ -468,6 +475,19 @@ int main(int argc, char **argv) {
                                                                            t5)
                      .count()
               << std::endl;
+  }
+  {
+    // test eigen
+    Eigen::Vector3d a(0.1, 0.2, 0.3);
+    Eigen::Vector3d b(0.5, 1, 1.5);
+    Eigen::Matrix3d A = Sophus::SO3d::exp(a).matrix();
+    Eigen::Matrix3d B = Sophus::SO3d::exp(b).matrix();
+    auto AB = A * B;
+    auto BA = B * A;
+    std::cout << "A = " << A << std::endl;
+    std::cout << "B = " << B << std::endl;
+    std::cout << "AB = " << AB << std::endl;
+    std::cout << "BA = " << BA << std::endl;
   }
   return 1;
 }
