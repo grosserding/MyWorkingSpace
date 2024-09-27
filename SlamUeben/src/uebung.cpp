@@ -1,17 +1,18 @@
 #define FMT_HEADER_ONLY
-#include "fmt/format.h"
 #include <algorithm>
+#include <chrono>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/SVD>
 #include <iostream>
 #include <random>
-#include <chrono>
-#include <sophus/so3.hpp>
-#include <sophus/so2.hpp>
-#include <sophus/se3.hpp>
 #include <sophus/se2.hpp>
+#include <sophus/se3.hpp>
+#include <sophus/so2.hpp>
+#include <sophus/so3.hpp>
+
+#include "fmt/format.h"
 int ZweiteSuchen(std::vector<double> &nums, const double &obj) {
   int left = 0, right = nums.size() - 1;
   while (left <= right) {
@@ -417,7 +418,7 @@ int main(int argc, char **argv) {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> ud(-100, 100);
     std::normal_distribution<double> nd(0, 1);
-    for(int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
       double x = ud(gen);
       double y = ud(gen);
       double z = a * x + b * y + c + nd(gen);
@@ -427,14 +428,14 @@ int main(int argc, char **argv) {
     }
     Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
     Eigen::Vector3d G = Eigen::Vector3d::Zero();
-    for(int i = 0; i < xs.size(); i++) {
+    for (int i = 0; i < xs.size(); i++) {
       double x = xs[i];
       double y = ys[i];
       double z = zs[i];
       Eigen::Matrix3d H_plus;
       Eigen::Vector3d G_plus;
-      H_plus << x*x, x*y, x, x*y, y*y, y, x, y, 1;
-      G_plus << z*x, z*y, z;
+      H_plus << x * x, x * y, x, x * y, y * y, y, x, y, 1;
+      G_plus << z * x, z * y, z;
       H += H_plus;
       G += G_plus;
     }
@@ -489,5 +490,10 @@ int main(int argc, char **argv) {
     std::cout << "AB = " << AB << std::endl;
     std::cout << "BA = " << BA << std::endl;
   }
+
+  double test[3] = {1.0, 2.5, 3.6};
+  double *test_ptr = &(test[0]);
+  Eigen::Vector3d testout = Eigen::Vector3d(test_ptr);
+  std::cout << "test = " << testout.transpose() << std::endl;
   return 1;
 }

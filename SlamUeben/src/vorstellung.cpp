@@ -3,6 +3,14 @@
 // #include <cstdlib> // 生成随机数的库，包含rand() srand()
 // #include <ctime> // 包含time()函数
 #include <ceres/ceres.h>
+#include <g2o/core/base_unary_edge.h>
+#include <g2o/core/base_vertex.h>
+#include <g2o/core/block_solver.h>
+#include <g2o/core/g2o_core_api.h>
+#include <g2o/core/optimization_algorithm_dogleg.h>
+#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
+#include <g2o/solvers/dense/linear_solver_dense.h>
 
 #include <algorithm>  // sort()
 #include <chrono>
@@ -246,7 +254,7 @@ int main(int argc, char **argv) {
   }
   {
     //## Handmade Gauss-Newton for optimization: f(x+dx) = f(x) + J(x)dx, Fx =
-    //f(x+dx)T
+    // f(x+dx)T
     // f(x+dx)
     // Jx JxT dx = - Jx fx -> H dx = g
     // Eigen::Vector3d test = Eigen::Vector3d::Zero();
@@ -371,6 +379,9 @@ int main(int argc, char **argv) {
     std::cout << "summary:\n" << summary.BriefReport() << std::endl;
     std::cout << "abc = " << abc[0] << ", " << abc[1] << ", " << abc[2]
               << std::endl;
+  }
+  {
+    // g2o fitting plane
   }
   return 0;
 }

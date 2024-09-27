@@ -53,6 +53,7 @@ add_executable(14Kap_7_8_2_3d2d_BA
                src/vierzehn_kapiteln_des_SLAMs/kap_7/7.8.2.cpp)
 add_executable(vorstellung src/vorstellung.cpp)
 add_executable(uebung src/uebung.cpp)
+add_executable(g2o_uebung src/g2o_uebungen.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
@@ -72,4 +73,6 @@ target_link_libraries(14Kap_7_8_2_3d2d_BA ${OpenCV_LIBS} ${G2O_CORE_LIBRARY}
 target_link_libraries(vorstellung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
                       ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
 target_link_libraries(uebung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
+                      ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
+target_link_libraries(g2o_uebung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
                       ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
