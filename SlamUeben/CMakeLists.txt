@@ -51,6 +51,8 @@ add_executable(14Kap_7_8_1_3d2d_EPnP
                src/vierzehn_kapiteln_des_SLAMs/kap_7/7.8.1.cpp)
 add_executable(14Kap_7_8_2_3d2d_BA
                src/vierzehn_kapiteln_des_SLAMs/kap_7/7.8.2.cpp)
+add_executable(14Kap_7_8_2_newversion
+               src/vierzehn_kapiteln_des_SLAMs/kap_7/7.8.2_newversion.cpp)
 add_executable(vorstellung src/vorstellung.cpp)
 add_executable(uebung src/uebung.cpp)
 add_executable(g2o_uebung src/g2o_uebungen.cpp)
@@ -70,6 +72,8 @@ target_link_libraries(14Kap_7_4_pose_estimation_2d2d ${OpenCV_LIBS})
 target_link_libraries(14Kap_7_8_1_3d2d_EPnP ${OpenCV_LIBS})
 target_link_libraries(14Kap_7_8_2_3d2d_BA ${OpenCV_LIBS} ${G2O_CORE_LIBRARY}
                       ${G2O_STUFF_LIBRARY})
+target_link_libraries(14Kap_7_8_2_newversion ${OpenCV_LIBS} ${G2O_CORE_LIBRARY}
+                      ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
 target_link_libraries(vorstellung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
                       ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
 target_link_libraries(uebung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}

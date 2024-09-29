@@ -1,3 +1,5 @@
+// 7.8.1 使用EPnP求解位姿
+
 #include <iostream>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/core.hpp>
