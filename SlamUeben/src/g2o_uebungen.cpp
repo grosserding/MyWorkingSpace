@@ -47,8 +47,8 @@ class PlaneFittingEdge
         static_cast<const PlaneFittingVertex *>(_vertices[0]);
     const Eigen::Vector3d abc = v->estimate();
     _jacobianOplusXi[0] = -x_;
-    _jacobianOplusXi[0] = -y_;
-    _jacobianOplusXi[0] = -1;
+    _jacobianOplusXi[1] = -y_;
+    _jacobianOplusXi[2] = -1;
   }
 
   virtual bool read(std::istream &in) {}
@@ -85,7 +85,8 @@ int main(int argc, char **argv) {
   optimizer.setVerbose(true);
 
   PlaneFittingVertex *v = new PlaneFittingVertex();
-  v->setEstimate(Eigen::Vector3d(-1, -1, -1));
+  double init_value = 10;
+  v->setEstimate(Eigen::Vector3d(init_value, init_value, init_value));
   v->setId(0);
   optimizer.addVertex(v);
 
