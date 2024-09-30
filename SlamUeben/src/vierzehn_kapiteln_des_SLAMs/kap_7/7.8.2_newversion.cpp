@@ -1,5 +1,7 @@
 // 7.8.2 这里用新书里面的代码对比各种PNP的求解
-
+#ifndef FMT_HEADER_ONLY
+#define FMT_HEADER_ONLY
+#endif
 #include <iostream>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/core.hpp>
@@ -26,7 +28,13 @@ void pose_estimation_2d2d(std::vector<cv::KeyPoint> kpts_1,
                           cv::Mat &t);
 
 // 像素坐标转相机归一化坐标，注意，返回的点为归一化坐标：x_norm, y_norm, z = 1
-cv::Point2d pixel2cam(const cv::Point2d &p, const cv::Mat &K);
+Point2d pixel2cam(const Point2d &p, const Mat &K) {
+  return Point2d
+    (
+      (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
+      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
+    );
+}
 
 // 手写GN-BA，输入2d点和对应的3d点，输出pose，K是什么？
 void handmadeBAGN(const VecVector3d &pts_3d, const VecVector2d &pts_2d,
@@ -108,7 +116,7 @@ int main(int argc, char **argv) {
     pts_2d_eigen.push_back(Eigen::Vector2d(pts_2d[i].x, pts_2d[i].y));
   }
   std::cout << "**** BA by gauss newton *****\n";
-  Sophus::SE3d pose_gn;
+  Sophus::SE3d pose_gn(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
   t1 = std::chrono::steady_clock::now();
   handmadeBAGN(pts_3d_eigen, pts_2d_eigen, K, pose_gn);
   t2 = std::chrono::steady_clock::now();
@@ -182,10 +190,80 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
   }
 }
 
-Point2d pixel2cam(const Point2d &p, const Mat &K) {
-  return Point2d
-    (
-      (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
-      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
-    );
+// 这里只有对位姿进行优化处理，这个真的算是BA吗？
+void handmadeBAGN(const VecVector3d &points_3d, const VecVector2d &points_2d,
+                  const cv::Mat &K, Sophus::SE3d &pose) {
+  typedef Eigen::Matrix<double, 6, 1> Vector6d;
+  const int iterations = 10;
+  double cost = 0, lastCost = 0;
+  double fx = K.at<double>(0, 0);
+  double fy = K.at<double>(1, 1);
+  double cx = K.at<double>(0, 2);
+  double cy = K.at<double>(1, 2);
+  for (int iter = 0; iter < iterations; iter++) {
+    // Hx = b 高斯牛顿， H = JT*J， b = -JT*e
+    Eigen::Matrix<double, 6, 6> H = Eigen::Matrix<double, 6, 6>::Zero();
+    Vector6d b = Vector6d::Zero();
+    cost = 0;
+
+    for (int i = 0; i < points_3d.size(); i++) {
+      // 误差如何定义？ 实际测到的像素坐标 -
+      // 把3d点通过外参（相机位姿）和内参转换得到的像素坐标 du = u - u_trans dv
+      // = v - v_trans e = du2 + dv2
+
+      // points_3d 为图像坐标系下的3d点，pose为世界系下的相机外参
+      // 所以pose * points_3d[i]，能得到世界系下的3d点
+      Eigen::Vector3d pc = pose * points_3d[i];
+      if(pc[2] == 0) {
+        continue;
+      }
+      double inv_z = 1.0 / pc[2];
+      double inv_z2 = inv_z * inv_z;
+      // proj 为
+      Eigen::Vector2d proj(fx * pc[0] / pc[2] + cx, fy * pc[1] / pc[2] + cy);
+      Eigen::Vector2d e = points_2d[i] - proj;
+
+      cost += e.squaredNorm();
+    //   std::cout << "pc = \n" << pc << std::endl;
+      Eigen::Matrix<double, 2, 6> J;
+      // SLAM十四讲中推导的 de / dxi， 所以这里只有在优化位姿，没有在优化3d点？
+      J << -fx * inv_z, 0, fx * pc[0] * inv_z2, fx * pc[0] * pc[1] * inv_z2,
+          -fx - fx * pc[0] * pc[0] * inv_z2, fx * pc[1] * inv_z, 0, -fy * inv_z,
+          fy * pc[1] * inv_z2, fy + fy * pc[1] * pc[1] * inv_z2,
+          -fy * pc[0] * pc[1] * inv_z2, -fy * pc[0] * inv_z;
+
+      // 高斯牛顿 H x = g, H = JT * J, g = -JT * f(x)
+      H += J.transpose() * J;
+      b += -J.transpose() * e;
+    }
+    Vector6d dx;
+    dx = H.ldlt().solve(b);
+
+    if (std::isnan(dx[0])) {
+      std::cout << "result is nan!\n";
+      break;
+    }
+
+    if (iter > 0 && cost >= lastCost) {
+      // cost increase, update is not good
+      std::cout << "cost: " << cost << ", last cost: " << lastCost << std::endl;
+      break;
+    }
+
+    // update estimate, x = x + dx
+    pose = Sophus::SE3d::exp(dx) * pose;  // 一会试一下左右乘的区别，还是要左乘。
+    lastCost = cost;
+    std::cout << "iteration " << iter << " cost = " << cost << std::endl;
+    if (dx.norm() < 1e-6) {
+      // converge
+      break;
+    }
+  }
+  std::cout << "pose by g-n:\n" << pose.matrix() << std::endl;
+}
+
+// 待完成
+void g2oBA(const VecVector3d &points_3d, const VecVector2d &points_2d,
+           const cv::Mat &K, Sophus::SE3d &pose) {
+  return;
 }
