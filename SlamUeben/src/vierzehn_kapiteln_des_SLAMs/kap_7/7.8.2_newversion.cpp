@@ -9,8 +9,16 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <sophus/common.hpp>
 #include <sophus/se3.hpp>
+#include <g2o/core/base_vertex.h>
+#include <g2o/core/base_unary_edge.h>
+#include <g2o/core/sparse_optimizer.h>
+#include <g2o/core/block_solver.h>
+#include <g2o/core/solver.h>
+#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/solvers/dense/linear_solver_dense.h>
 #include <chrono>
 using namespace cv;
+using namespace std;
 
 typedef std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>> VecVector2d;
 typedef std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> VecVector3d;
@@ -261,6 +269,27 @@ void handmadeBAGN(const VecVector3d &points_3d, const VecVector2d &points_2d,
   }
   std::cout << "pose by g-n:\n" << pose.matrix() << std::endl;
 }
+
+// 顶点定义， 就是
+class VertexPose : public g2o::BaseVertex<6, Sophus::SE3d> {
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
+  virtual void setToOriginImpl() override { _estimate = Sophus::SE3d(); }
+
+  // left multiplication on SE3
+  virtual void oplusImpl(const double *update) override {
+    Eigen::Matrix<double, 6, 1> update_eigen;
+    update_eigen << update[0], update[1], update[2], update[3], update[4],
+        update[5];
+    _estimate = Sophus::SE3d::exp(update_eigen) * _estimate;
+  }
+  virtual bool read(istream &in) override {}
+  virtual bool write(ostream &out) const override {}
+};
+
+// 
+class EdgeProjection : public g2o::BaseUnaryEdge<2, Eigen::Vector2d, VertexPose> {};
 
 // 待完成
 void g2oBA(const VecVector3d &points_3d, const VecVector2d &points_2d,

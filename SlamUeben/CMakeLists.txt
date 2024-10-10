@@ -56,6 +56,8 @@ add_executable(14Kap_7_8_2_newversion
 add_executable(vorstellung src/vorstellung.cpp)
 add_executable(uebung src/uebung.cpp)
 add_executable(g2o_uebung src/g2o_uebungen.cpp)
+add_executable(pcd_generate src/tools/pcd_generate.cpp)
+add_executable(transform_calc src/tools/transform_calc.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
@@ -80,3 +82,5 @@ target_link_libraries(uebung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIE
                       ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
 target_link_libraries(g2o_uebung ${OpenCV_LIBS} ${G2O_CORE_LIBRARY} ${CERES_LIBRARIES}
                       ${G2O_STUFF_LIBRARY} ${Sophus_LIBS})
+target_link_libraries(pcd_generate ${OpenCV_LIBS} ${PCL_LIBRARIES} ${Sophus_LIBS})
+target_link_libraries(transform_calc ${OpenCV_LIBS} ${PCL_LIBRARIES} ${Sophus_LIBS} ${CERES_LIBRARIES})
