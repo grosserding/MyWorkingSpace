@@ -1,3 +1,4 @@
+#define FMT_HEADER_ONLY
 #include <iostream>
 #include <vector>
 // #include <cstdlib> // 生成随机数的库，包含rand() srand()
@@ -21,6 +22,10 @@
 #include <random>
 #include <string>
 #include <typeinfo>
+#include <sophus/se2.hpp>
+#include <sophus/se3.hpp>
+#include <sophus/so2.hpp>
+#include <sophus/so3.hpp>
 
 //##1. zweite suchen
 // standard loesung, 给一个值，如果查到返回idx，如果找不到，返回-1并插入。
@@ -382,6 +387,37 @@ int main(int argc, char **argv) {
   }
   {
     // g2o fitting plane
+  }
+  {
+    // SE3 pose lerp
+    // 需求：现在有t1时刻对应的SE3 T1，t2时刻对应的SE3 T2，现给出t3，要求根据T1 T2得出T3的时间插值
+    Eigen::Vector3d dp(0.13, 1.1, 0.05);
+    Sophus::SO3d dR = Sophus::SO3d::exp(Eigen::Vector3d(0.01, 0.02, 0.03));
+    Sophus::SE3d dT(dR, dp);
+    Sophus::SE3d T1(Sophus::SO3d(Eigen::Matrix3d::Identity()),
+                    Eigen::Vector3d::Zero());
+    Sophus::SE3d T2 = T1 * dT;
+    double t1 = 0.0;
+    double t2 = 1.0;
+    double t3 = 0.88;
+    auto SE3lerp = [](const Sophus::SE3d &T1, const Sophus::SE3d &T2,
+                   const double &t1, const double &t2,
+                   const double &t3) -> Sophus::SE3d {
+      double s = (t3 - t1) / (t2 - t1);
+      Eigen::Vector3d position1 = T1.translation();
+      Eigen::Vector3d position2 = T2.translation();
+      Eigen::Vector3d position3 = (1 - s) * position1 + s * position2;
+      Sophus::SO3d R3(
+          T1.so3().unit_quaternion().slerp(s, T2.so3().unit_quaternion()));
+      return Sophus::SE3d(R3, position3);
+    };
+    auto T3 = SE3lerp(T1, T2, t1, t2, t3);
+    std::cout << "R1 = \n" << T1.so3().matrix() << std::endl;
+    std::cout << "R2 = \n" << T2.so3().matrix() << std::endl;
+    std::cout << "R3 = \n" << T3.so3().matrix() << std::endl;
+    std::cout << "eu1 = " << T1.so3().matrix().eulerAngles(0, 1, 2).transpose() << std::endl;
+    std::cout << "eu2 = " << T2.so3().matrix().eulerAngles(0, 1, 2).transpose() << std::endl;
+    std::cout << "eu3 = " << T3.so3().matrix().eulerAngles(0, 1, 2).transpose() << std::endl;
   }
   return 0;
 }

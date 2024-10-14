@@ -32,6 +32,7 @@ add_library(EKFUebenLib SHARED src/lib/ekf_ueben_lib.cpp)
 
 add_executable(ExecuteSlamUeben src/slam_ueben_main.cpp)
 add_executable(ExecuteKapitel_2_3 src/slam_in_autonomous/kapitel_2/kapitel_2_3.cpp)
+add_executable(sia_3_2_2_imu_propagate src/slam_in_autonomous/kap3/3_2_2.cpp)
 
 add_executable(14Kap_3_2 src/vierzehn_kapiteln_des_SLAMs/kapitel_3/3.2.cpp)
 add_executable(14Kap_3_6 src/vierzehn_kapiteln_des_SLAMs/kapitel_3/3.6.cpp)
@@ -61,6 +62,8 @@ add_executable(transform_calc src/tools/transform_calc.cpp)
 
 target_link_libraries(ExecuteSlamUeben LibrariesUebenLib EKFUebenLib common_lib)
 target_link_libraries(ExecuteKapitel_2_3 common_lib)
+target_link_libraries(sia_3_2_2_imu_propagate common_lib)
+
 target_link_libraries(14Kap_5_3 ${OpenCV_LIBS})
 target_link_libraries(14Kap_5_4 ${OpenCV_LIBS} ${PCL_LIBRARIES} ${Sophus_LIBS})
 target_link_libraries(14Kap_6_3 ${OpenCV_LIBS} ${CERES_LIBRARIES})
